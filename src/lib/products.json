@@ -1,0 +1,27 @@
+[
+    {
+      "id": 1,
+      "slug": "kavrulmus-findik",
+      "name": "Kavrulmuş Fındık",
+      "price": 150,
+      "description": "Taptaze, çıtır kavrulmuş Giresun fındığı.",
+      "image": "/images/placeholder.jpg"
+    },
+    {
+      "id": 2,
+      "slug": "tuzlu-yer-fistigi",
+      "name": "Tuzlu Yer Fıstığı",
+      "price": 90,
+      "description": "Kavrulmuş ve tuzlanmış yer fıstığı.",
+      "image": "/images/placeholder.jpg"
+    },
+    {
+      "id": 3,
+      "slug": "badem-ici",
+      "name": "Badem İçi",
+      "price": 190,
+      "description": "İç badem, yumuşak ve lezzetli.",
+      "image": "/images/placeholder.jpg"
+    }
+  ]
+  

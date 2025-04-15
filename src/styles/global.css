@@ -1,0 +1,23 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  line-height: 1.6;
+  padding: 0 1rem;
+}
+
+a {
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+main {
+  padding: 2rem 0;
+}

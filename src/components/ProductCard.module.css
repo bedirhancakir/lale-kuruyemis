@@ -1,0 +1,93 @@
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .image {
+    border-radius: 6px;
+    object-fit: cover;
+  }
+  
+  .link {
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .headerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+  }
+  
+  .heartButton {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .heartIcon {
+    color: #aaa;
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+  
+  .heartIcon:hover {
+    transform: scale(1.1);
+    color: #ff6b81;
+  }
+  
+  .filledHeart {
+    color: #e74c3c;
+    transition: transform 0.2s ease;
+  }
+  
+  .filledHeart:hover {
+    transform: scale(1.1);
+  }
+  
+  .price {
+    margin-top: 0.5rem;
+    font-size: 1rem;
+    color: #222;
+  }
+  
+  .button {
+    margin-top: 1rem;
+    background-color: #009578;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background-color 0.2s ease;
+  }
+  
+  .button:hover {
+    background-color: #007c63;
+  }
+  
+  .addIcon {
+    font-size: 1.2rem;
+    color: white;
+  }
+  
+  .checkIcon {
+    font-size: 1.2rem;
+    color: #2ecc71;
+  }
+  

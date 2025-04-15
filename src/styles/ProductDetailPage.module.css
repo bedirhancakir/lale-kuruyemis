@@ -1,0 +1,101 @@
+.container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  
+  .imageWrapper {
+    flex: 1 1 50%;
+  }
+  
+  .image {
+    border-radius: 12px;
+    object-fit: cover;
+    max-width: 100%;
+    height: auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+  
+  .infoCard {
+    flex: 1 1 40%;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  
+  .infoCard h1 {
+    margin-bottom: 0.8rem;
+    font-size: 1.6rem;
+  }
+  
+  .description {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: #444;
+  }
+  
+  .price {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    color: #222;
+  }
+  
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .cartButton {
+    background-color: #009578;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background-color 0.2s ease;
+  }
+  
+  .cartButton:hover {
+    background-color: #007c63;
+  }
+  
+  .addIcon {
+    font-size: 1.1rem;
+    color: white;
+  }
+  
+  .checkIcon {
+    font-size: 1.1rem;
+    color: #2ecc71;
+  }
+  
+  .favButton {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  
+  .heartIcon {
+    color: #aaa;
+  }
+  
+  .filledHeart {
+    color: #e74c3c;
+  }
+  
+  .favButton:hover {
+    transform: scale(1.1);
+  }
+  

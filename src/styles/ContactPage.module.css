@@ -1,0 +1,19 @@
+.contact {
+    max-width: 600px;
+    margin: 2rem auto;
+  }
+  
+  .contact h1 {
+    margin-bottom: 1rem;
+  }
+  
+  .contact ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .contact li {
+    margin-bottom: 0.5rem;
+    color: #444;
+  }
+  

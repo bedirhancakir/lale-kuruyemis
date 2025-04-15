@@ -1,0 +1,29 @@
+.nav {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .nav a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+  }
+  
+  .heartIcon {
+    font-size: 1.2rem;
+    color: #e74c3c;
+    vertical-align: middle;
+    margin-right: 0.3rem;
+  }
+  
+  .cartIcon {
+    font-size: 1.2rem;
+    color: #333;
+    vertical-align: middle;
+    margin-right: 0.3rem;
+  }
+  
