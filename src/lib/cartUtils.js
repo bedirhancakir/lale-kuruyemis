@@ -11,6 +11,11 @@ export function getCartCount() {
   return cart.reduce((sum, item) => sum + item.quantity, 0)
 }
 
+export function getCartTotal() {
+  const cart = getCart()
+  return cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+}
+
 export function addToCart(product) {
   const cart = getCart()
   const existing = cart.find(item => item.id === product.id)

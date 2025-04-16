@@ -22,6 +22,38 @@
       "price": 190,
       "description": "İç badem, yumuşak ve lezzetli.",
       "image": "/images/placeholder.jpg"
+    },
+    {
+      "id": 4,
+      "slug": "kaju",
+      "name": "Kaju",
+      "price": 210,
+      "description": "Kaju, yumuşak ve taze.",
+      "image": "/images/placeholder.jpg"
+    },
+    {
+      "id": 5,
+      "slug": "antep-fistigi",
+      "name": "Antep Fıstığı",
+      "price": 250,
+      "description": "Antep Fıstığı, çıtır ve taze.",
+      "image": "/images/placeholder.jpg"
+    },
+    {
+      "id": 6,
+      "slug": "kabak-cekirdegi",
+      "name": "Kabak Çekirdeği",
+      "price": 120,
+      "description": "Kabak Çekirdeği, müthiş kavrulmuş.",
+      "image": "/images/placeholder.jpg"
+    },
+    {
+      "id": 7,
+      "slug": "ay-cekirdegi",
+      "name": "Ay Çekirdeği",
+      "price": 80,
+      "description": "Ay Çekirdeği, papağanlara özel.",
+      "image": "/images/placeholder.jpg"
     }
   ]
   

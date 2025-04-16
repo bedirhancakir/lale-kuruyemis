@@ -1,66 +1,302 @@
-.checkout {
-    max-width: 800px;
-    margin: 2rem auto;
+/* === Genel Sayfa Ayarı === */
+.checkoutWrapper {
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 2rem;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.checkoutLeft {
+  flex: 1;
+  min-width: 300px;
+}
+
+.checkoutRight {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+/* === Adım Göstergesi (Step Indicator) === */
+.stepsContainer {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+.step {
+  cursor: pointer;
+  color: #aaa;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.step:hover {
+  color: #444;
+}
+
+.stepNumber {
+  font-weight: bold;
+  margin-right: 0.4rem;
+}
+
+.active {
+  color: black;
+  font-weight: 700;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* === Form Alanları === */
+.stepTitle {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.deliveryForm,
+.paymentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.checkoutInput,
+.checkoutTextarea,
+.checkoutSelect {
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+  resize: none;
+}
+
+.errorLabel {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+.errorInput {
+  border: 1px solid #dc3545 !important;
+  background-color: #fff5f5;
+}
+
+.errorText {
+  font-size: 0.85rem;
+  color: #dc3545;
+  margin-top: 0.3rem;
+}
+
+/* === Sipariş Özeti (Order Summary) === */
+.orderSummary {
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.summaryTitle {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.thumbnailList {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+.imageWrapper {
+  width: 50px;
+  height: 50px;
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.productThumb {
+  border-radius: 6px;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.extraThumbnail {
+  width: 50px;
+  height: 50px;
+  background: #eee;
+  color: #333;
+  font-weight: bold;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.priceLine {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.totalLine {
+  display: flex;
+  justify-content: space-between;
+  margin: 1rem 0;
+  font-size: 1.1rem;
+}
+
+.line {
+  margin: 1rem 0;
+  border: none;
+  border-top: 1px solid #ccc;
+}
+
+.freeShipping {
+  color: green;
+  font-weight: bold;
+}
+
+.agreement {
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.agreementError {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* Checkbox kutusunu kırmızı yap */
+.checkboxError {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #dc3545;
+  border-radius: 2px;
+}
+
+/* Checkbox'ın çerçevesini manuel stil için (fallback) */
+.checkboxWrapper input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.2rem;
+  accent-color: #28a745;
+}
+
+.completeButton {
+  width: 100%;
+  background-color: #28a745;
+  color: white;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.completeButton:hover {
+  background-color: #218838;
+}
+
+/* === Başarılı Sipariş Ekranı === */
+.successMessage {
+  text-align: center;
+  margin-top: 3rem;
+  padding: 2rem;
+  border: 2px solid #28a745;
+  border-radius: 12px;
+  background-color: #f1fdf4;
+  color: #2e7d32;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.successMessage h2 {
+  font-size: 1.8rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.successMessage p {
+  font-size: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
-  .checkoutTitle {
-    text-align: center;
-    font-size: 1.6rem;
-    margin-bottom: 1.5rem;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .form {
-    display: flex;
+}
+
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .checkoutWrapper {
     flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 2rem;
   }
-  
-  .form input {
-    padding: 0.6rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-  
-  .form button {
-    padding: 0.8rem;
-    background-color: #009578;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-  }
-  
-  .form button:hover {
-    background-color: #007c63;
-  }
-  
-  .summary {
-    background: #f9f9f9;
-    padding: 1rem;
-    border-radius: 8px;
-  }
-  
-  .summary h2 {
-    margin-bottom: 1rem;
-  }
-  
-  .summary ul {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 1rem 0;
-  }
-  
-  .total {
-    font-size: 1.2rem;
-    text-align: right;
-  }
-  
-  .success {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #2ecc71;
+
+  .checkoutRight {
+    width: 100%;
     margin-top: 2rem;
   }
-  
+}
+
+.stepsContainer {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+.step {
+  cursor: pointer;
+  color: #aaa;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.step:hover {
+  color: #444;
+}
+
+.stepNumber {
+  font-weight: bold;
+  margin-right: 0.4rem;
+}
+
+.active {
+  color: black;
+  font-weight: 700;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}

@@ -1,104 +1,132 @@
-import Head from 'next/head'
-import { useState, useEffect } from 'react'
-import { getCart, clearCart } from '../lib/cartUtils'
-import styles from '../styles/CheckoutPage.module.css'
+import { useState } from "react";
+import CheckoutSteps from "../components/Checkout/CheckoutSteps";
+import Step1_DeliveryForm from "../components/Checkout/Step1_DeliveryForm";
+import Step2_PaymentForm from "../components/Checkout/Step2_PaymentForm";
+import Step3_Success from "../components/Checkout/Step3_Success";
+import OrderSummary from "../components/Checkout/OrderSummary";
+import styles from "../styles/CheckoutPage.module.css";
 
 export default function CheckoutPage() {
-  const [cart, setCart] = useState([])
-  const [orderPlaced, setOrderPlaced] = useState(false)
+  const [step, setStep] = useState(1);
 
-  const [form, setForm] = useState({
-    name: '',
-    address: '',
-    phone: ''
-  })
+  const [deliveryInfo, setDeliveryInfo] = useState({
+    email: "",
+    firstName: "",
+    lastName: "",
+    country: "Türkiye",
+    city: "",
+    district: "",
+    phone: "",
+    address: "",
+    note: "",
+  });
 
-  useEffect(() => {
-    setCart(getCart())
-  }, [])
+  const [paymentInfo, setPaymentInfo] = useState({});
+  const [deliveryErrors, setDeliveryErrors] = useState({});
+  const [showToast, setShowToast] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const [isAgreementChecked, setIsAgreementChecked] = useState(false);
+  const [showAgreementError, setShowAgreementError] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
-  }
+  const validateDelivery = () => {
+    const newErrors = {};
+    let isValid = true;
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
-    if (!form.name || !form.address || !form.phone) {
-      alert('Lütfen tüm bilgileri doldurun.')
-      return
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!deliveryInfo.email || !emailRegex.test(deliveryInfo.email)) {
+      newErrors.email = "Geçerli bir e-posta giriniz";
+      isValid = false;
     }
 
-    // Sipariş işlemleri (şimdilik sadece log ve temizleme)
-    console.log('Sipariş Verildi:', form, cart)
+    if (!/^05\d{9}$/.test(deliveryInfo.phone || "")) {
+      newErrors.phone = "Geçerli bir telefon numarası giriniz (05xx xxx xx xx)";
+      isValid = false;
+    }
 
-    clearCart()
-    setCart([])
-    setOrderPlaced(true)
-  }
+    const requiredFields = [
+      { name: "firstName", label: "Lütfen ad giriniz" },
+      { name: "lastName", label: "Lütfen soyad giriniz" },
+      { name: "city", label: "Lütfen şehir seçiniz" },
+      { name: "district", label: "Lütfen ilçe giriniz" },
+      { name: "address", label: "Lütfen adres giriniz" },
+    ];
+
+    requiredFields.forEach(({ name, label }) => {
+      if (!deliveryInfo[name] || deliveryInfo[name].trim() === "") {
+        newErrors[name] = label;
+        isValid = false;
+      }
+    });
+
+    setDeliveryErrors(newErrors);
+    return isValid;
+  };
+
+  const validatePayment = () => {
+    return true; // mock ödeme kontrolü
+  };
+
+  const handleMainButtonClick = () => {
+    if (step === 1) {
+      if (validateDelivery()) {
+        setStep(2);
+        setShowToast(false);
+      }
+    } else if (step === 2) {
+      if (!isAgreementChecked) {
+        setShowAgreementError(true);
+        return;
+      }
+
+      if (validatePayment()) {
+        setSubmitted(true);
+        setStep(3);
+      }
+    }
+  };
 
   return (
-    <>
-      <Head>
-        <title>Sipariş – Lale Kuruyemiş</title>
-      </Head>
+    <div className={styles.checkoutContainer}>
 
-      <section className={styles.checkout}>
-        <h1 className={styles.checkoutTitle}>Sipariş Ver</h1>
+      <CheckoutSteps
+        currentStep={step}
+        onStepClick={(s) => setStep(s)}
+        allowStep2={step >= 2}
+      />
 
-        {orderPlaced ? (
-          <p className={styles.success}>✅ Siparişiniz başarıyla alındı! Teşekkür ederiz 💚</p>
-        ) : (
-          <>
-            <form onSubmit={handleSubmit} className={styles.form}>
-              <input
-                type="text"
-                name="name"
-                placeholder="Ad Soyad"
-                value={form.name}
-                onChange={handleChange}
-              />
-              <input
-                type="text"
-                name="address"
-                placeholder="Adres"
-                value={form.address}
-                onChange={handleChange}
-              />
-              <input
-                type="tel"
-                name="phone"
-                placeholder="Telefon"
-                value={form.phone}
-                onChange={handleChange}
-              />
-              <button type="submit">Siparişi Ver</button>
-            </form>
+      <div className={styles.checkoutWrapper}>
+        <div className={styles.checkoutLeft}>
+          {step === 1 && (
+            <Step1_DeliveryForm
+              formData={deliveryInfo}
+              setFormData={setDeliveryInfo}
+              errors={deliveryErrors}
+              setErrors={setDeliveryErrors}
+              showToast={showToast}
+            />
+          )}
+          {step === 2 && (
+            <Step2_PaymentForm
+              formData={paymentInfo}
+              setFormData={setPaymentInfo}
+            />
+          )}
+          {step === 3 && <Step3_Success />}
+        </div>
 
-            <div className={styles.summary}>
-              <h2>Sepet Özeti</h2>
-              {cart.length === 0 ? (
-                <p>Sepetiniz boş.</p>
-              ) : (
-                <ul>
-                  {cart.map((item) => (
-                    <li key={item.id}>
-                      {item.name} × {item.quantity} — {item.price}₺
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <p className={styles.total}>
-                Toplam: <strong>{total}₺</strong>
-              </p>
-            </div>
-          </>
-        )}
-      </section>
-    </>
-  )
+        <div className={styles.checkoutRight}>
+          <OrderSummary
+            step={step}
+            onClick={handleMainButtonClick}
+            submitted={submitted}
+            isAgreementChecked={isAgreementChecked}
+            setIsAgreementChecked={setIsAgreementChecked}
+            showAgreementError={showAgreementError}
+            setShowAgreementError={setShowAgreementError}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
