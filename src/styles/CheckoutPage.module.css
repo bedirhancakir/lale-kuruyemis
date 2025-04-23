@@ -97,9 +97,8 @@
 }
 
 .errorText {
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   color: #dc3545;
-  margin-top: 0.3rem;
 }
 
 /* === Sipariş Özeti (Order Summary) === */
@@ -299,4 +298,57 @@
 .disabled {
   pointer-events: none;
   opacity: 0.5;
+}
+
+.paymentFormWrapper {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.paymentFormLeft {
+  flex: 1;
+  min-width: 300px;
+}
+
+.paymentFormRight {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.cardPreview {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #28a745, #444);
+  border-radius: 12px;
+  padding: 1.5rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  font-family: "Courier New", monospace;
+}
+
+.cardNumber {
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+}
+
+.cardName,
+.cardExpiry {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+@media (max-width: 768px) {
+  .paymentFormWrapper {
+    flex-direction: column;
+  }
+
+  .paymentFormRight {
+    width: 100%;
+  }
 }
