@@ -1,36 +1,30 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { useState, useEffect } from 'react'
-import { addToCart } from '../lib/cartUtils'
-import { toggleFavorite, isFavorite } from '../lib/favoritesUtils'
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useCart } from "../context/CartContext";
+import { useFavorites } from "../context/FavoritesContext";
 
-import { AiOutlinePlus, AiOutlineCheck, AiOutlineHeart, AiFillHeart } from 'react-icons/ai'
-
-import styles from './ProductCard.module.css'
+import { AiOutlinePlus, AiOutlineCheck, AiOutlineHeart, AiFillHeart } from "react-icons/ai";
+import styles from "./ProductCard.module.css";
 
 export default function ProductCard({ product }) {
-  const [added, setAdded] = useState(false)
-  const [favorited, setFavorited] = useState(false)
+  const [added, setAdded] = useState(false);
+  const { addToCart } = useCart();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
-  // Favori durumunu başta kontrol et
-  useEffect(() => {
-    setFavorited(isFavorite(product.id))
-  }, [product.id])
+  const favorited = isFavorite(product.id);
 
-  // Sepete ekle
   const handleAddToCart = (e) => {
-    e.preventDefault()
-    addToCart(product)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 2000)
-  }
+    e.preventDefault();
+    addToCart(product);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
 
-  // Favoriye ekle/çıkar
   const handleToggleFavorite = (e) => {
-    e.preventDefault()
-    toggleFavorite(product)
-    setFavorited(!favorited)
-  }
+    e.preventDefault();
+    toggleFavorite(product);
+  };
 
   return (
     <Link href={`/product/${product.slug}`} className={styles.link}>
@@ -76,5 +70,5 @@ export default function ProductCard({ product }) {
         </button>
       </article>
     </Link>
-  )
+  );
 }

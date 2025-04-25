@@ -1,7 +1,6 @@
 import styles from "../../styles/CheckoutPage.module.css";
 import Image from "next/image";
-import { getCart, getCartCount } from "../../lib/cartUtils";
-import { useEffect, useState } from "react";
+import { useCart } from "../../context/CartContext";
 
 export default function OrderSummary({
   step,
@@ -10,13 +9,9 @@ export default function OrderSummary({
   isAgreementChecked,
   setIsAgreementChecked,
   showAgreementError,
-  setShowAgreementError, // ✅ BUNU EKLE!
+  setShowAgreementError,
 }) {
-  const [cartItems, setCartItems] = useState([]);
-
-  useEffect(() => {
-    setCartItems(getCart());
-  }, [submitted]);
+  const { cartItems } = useCart(); // 🎯 Artık context'ten geliyor
 
   const cartTotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -80,7 +75,7 @@ export default function OrderSummary({
               checked={isAgreementChecked}
               onChange={(e) => {
                 setIsAgreementChecked(e.target.checked);
-                if (e.target.checked) setShowAgreementError(false); // 🔄 Otomatik kaldır
+                if (e.target.checked) setShowAgreementError(false);
               }}
               className={showAgreementError ? styles.checkboxError : ""}
             />{" "}

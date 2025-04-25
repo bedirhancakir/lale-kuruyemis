@@ -1,35 +1,40 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { useEffect, useState } from 'react'
-import { getStaticPaths, getStaticProps } from '../../lib/getProductData'
-import { addToCart } from '../../lib/cartUtils'
-import { toggleFavorite, isFavorite } from '../../lib/favoritesUtils'
-import { AiOutlinePlus, AiFillHeart, AiOutlineHeart, AiOutlineCheck } from 'react-icons/ai'
-import styles from '../../styles/ProductDetailPage.module.css'
+import Head from "next/head";
+import Image from "next/image";
+import { useState } from "react";
+import { getStaticPaths, getStaticProps } from "../../lib/getProductData";
+import { useCart } from "../../context/CartContext";
+import { useFavorites } from "../../context/FavoritesContext";
 
-export { getStaticPaths, getStaticProps }
+import { AiOutlinePlus, AiFillHeart, AiOutlineHeart, AiOutlineCheck } from "react-icons/ai";
+import styles from "../../styles/ProductDetailPage.module.css";
+
+export { getStaticPaths, getStaticProps };
 
 export default function ProductDetailPage({ product }) {
-  const [added, setAdded] = useState(false)
-  const [favorited, setFavorited] = useState(false)
+  const [added, setAdded] = useState(false);
+  const { addToCart } = useCart();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
-  useEffect(() => {
-    if (!product) return
-    setFavorited(isFavorite(product.id))
-  }, [product])
+  if (!product) {
+    return (
+      <section className={styles.container}>
+        <h1>Ürün bulunamadı ❌</h1>
+        <p>Aradığınız ürün mevcut değil veya kaldırılmış olabilir.</p>
+      </section>
+    );
+  }
+
+  const favorited = isFavorite(product.id);
 
   const handleAddToCart = () => {
-    addToCart(product)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 2000)
-  }
+    addToCart(product);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
 
   const handleToggleFavorite = () => {
-    toggleFavorite(product)
-    setFavorited(!favorited)
-  }
-
-  if (!product) return null
+    toggleFavorite(product);
+  };
 
   return (
     <>
@@ -82,5 +87,5 @@ export default function ProductDetailPage({ product }) {
         </div>
       </section>
     </>
-  )
+  );
 }

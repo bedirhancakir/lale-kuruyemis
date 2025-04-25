@@ -1,25 +1,11 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getCartCount } from "../lib/cartUtils";
 import styles from "./Header.module.css";
 import { AiFillHeart, AiOutlineShoppingCart } from "react-icons/ai";
+import { useCart } from "../context/CartContext";
 
 export default function Header() {
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      // İlk yüklemede sayıyı al
-      setCartCount(getCartCount());
-
-      // Her 1 saniyede bir kontrol et (geçici çözüm)
-      const interval = setInterval(() => {
-        setCartCount(getCartCount());
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, []);
+  const { cartItems } = useCart();
+  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
     <header>
@@ -32,8 +18,7 @@ export default function Header() {
           <AiFillHeart className={styles.heartIcon} /> Favoriler
         </Link>
         <Link href="/cart">
-          <AiOutlineShoppingCart className={styles.cartIcon} /> Sepetim (
-          {cartCount})
+          <AiOutlineShoppingCart className={styles.cartIcon} /> Sepetim ({cartCount})
         </Link>
       </nav>
     </header>

@@ -62,8 +62,7 @@
   margin-bottom: 1.5rem;
 }
 
-.deliveryForm,
-.paymentForm {
+.deliveryForm {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -216,30 +215,53 @@
 }
 
 /* === Başarılı Sipariş Ekranı === */
-.successMessage {
+.successContainer {
   text-align: center;
-  margin-top: 3rem;
-  padding: 2rem;
-  border: 2px solid #28a745;
-  border-radius: 12px;
-  background-color: #f1fdf4;
-  color: #2e7d32;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 3rem 2rem;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   animation: fadeIn 0.5s ease-in-out;
 }
 
-.successMessage h2 {
-  font-size: 1.8rem;
-  margin-top: 1rem;
+.successIcon {
+  margin-bottom: 1rem;
+}
+
+.successTitle {
+  font-size: 2rem;
+  font-weight: bold;
   margin-bottom: 0.5rem;
 }
 
-.successMessage p {
-  font-size: 1rem;
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
+.successMessage {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 2rem;
 }
+
+.orderId {
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.successButton {
+  background-color: #4BB543;
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.successButton:hover {
+  background-color: #3fa33d;
+}
+
 
 @keyframes fadeIn {
   from {
@@ -263,41 +285,6 @@
     width: 100%;
     margin-top: 2rem;
   }
-}
-
-.stepsContainer {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #ddd;
-  font-size: 1rem;
-}
-
-.step {
-  cursor: pointer;
-  color: #aaa;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.step:hover {
-  color: #444;
-}
-
-.stepNumber {
-  font-weight: bold;
-  margin-right: 0.4rem;
-}
-
-.active {
-  color: black;
-  font-weight: 700;
-}
-
-.disabled {
-  pointer-events: none;
-  opacity: 0.5;
 }
 
 .paymentFormWrapper {

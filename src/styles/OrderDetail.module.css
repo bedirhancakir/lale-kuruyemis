@@ -1,0 +1,73 @@
+.container {
+    padding: 2rem;
+    max-width: 800px;
+    margin: auto;
+  }
+  
+  .title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+  
+  .titleRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .orderDate {
+    font-size: 0.95rem;
+    color: #555;
+  }
+  
+  .statusBox {
+    margin: 1rem 0;
+  }
+  
+  .statusBox select {
+    margin-left: 1rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.95rem;
+  }
+  
+  .section {
+    margin-top: 2rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fafafa;
+  }
+  
+  .section h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #222;
+  }
+  
+  .section p,
+  .section li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: #444;
+  }
+  
+  .productList {
+    list-style: none;
+    padding-left: 1rem;
+  }
+  
+  .backButton {
+    background-color: #eee;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .backButton:hover {
+    background-color: #ddd;
+  }
+  

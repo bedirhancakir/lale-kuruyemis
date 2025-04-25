@@ -4,6 +4,7 @@ import Step1_DeliveryForm from "../components/Checkout/Step1_DeliveryForm";
 import Step2_PaymentForm from "../components/Checkout/Step2_PaymentForm";
 import Step3_Success from "../components/Checkout/Step3_Success";
 import OrderSummary from "../components/Checkout/OrderSummary";
+import { useCart } from "../context/CartContext";
 import styles from "../styles/CheckoutPage.module.css";
 
 export default function CheckoutPage() {
@@ -21,13 +22,22 @@ export default function CheckoutPage() {
     note: "",
   });
 
-  const [paymentInfo, setPaymentInfo] = useState({});
+  const [paymentInfo, setPaymentInfo] = useState({
+    cardNumber: "",
+    cardName: "",
+    expiry: "",
+    cvv: ""
+  });
+
   const [deliveryErrors, setDeliveryErrors] = useState({});
+  const [paymentErrors, setPaymentErrors] = useState({});
   const [showToast, setShowToast] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-
   const [isAgreementChecked, setIsAgreementChecked] = useState(false);
   const [showAgreementError, setShowAgreementError] = useState(false);
+  const [orderId, setOrderId] = useState(null); // 🎯 Yeni: orderId state
+
+  const { cartItems, clearCart } = useCart();
 
   const validateDelivery = () => {
     const newErrors = {};
@@ -64,10 +74,35 @@ export default function CheckoutPage() {
   };
 
   const validatePayment = () => {
-    return true; // mock ödeme kontrolü
+    const newErrors = {};
+    const rawCard = paymentInfo.cardNumber?.replace(/\s/g, "");
+    if (!rawCard || rawCard.length !== 16) newErrors.cardNumber = "Kart numarası geçersiz";
+
+    if (!paymentInfo.cardName || paymentInfo.cardName.trim().length < 2)
+      newErrors.cardName = "Kart sahibi adı gerekli";
+
+    if (!paymentInfo.expiry || paymentInfo.expiry.length !== 5 || !paymentInfo.expiry.includes("/")) {
+      newErrors.expiry = "Geçersiz Tarih";
+    } else {
+      const [monthStr, yearStr] = paymentInfo.expiry.split("/");
+      const month = parseInt(monthStr, 10);
+      const year = parseInt("20" + yearStr, 10);
+      const today = new Date();
+      const expDate = new Date(year, month - 1);
+
+      if (isNaN(month) || isNaN(year) || month < 1 || month > 12 || expDate < new Date(today.getFullYear(), today.getMonth())) {
+        newErrors.expiry = "Geçersiz tarih";
+      }
+    }
+
+    if (!paymentInfo.cvv || paymentInfo.cvv.length < 3 || paymentInfo.cvv.length > 4)
+      newErrors.cvv = "Geçersiz CVV";
+
+    setPaymentErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleMainButtonClick = () => {
+  const handleMainButtonClick = async () => {
     if (step === 1) {
       if (validateDelivery()) {
         setStep(2);
@@ -79,21 +114,47 @@ export default function CheckoutPage() {
         return;
       }
 
-      if (validatePayment()) {
-        setSubmitted(true);
-        setStep(3);
+      if (!validatePayment()) return;
+
+      const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+      try {
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            deliveryInfo,
+            paymentInfo,
+            cartItems,
+            total,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          setOrderId(data.orderId);
+          setSubmitted(true);
+          clearCart();
+          setStep(3);
+        } else {
+          console.error("Sipariş oluşturulamadı:", data);
+        }
+      } catch (err) {
+        console.error("Sipariş gönderilirken hata oluştu:", err);
       }
     }
   };
 
   return (
     <div className={styles.checkoutContainer}>
-
-      <CheckoutSteps
-        currentStep={step}
-        onStepClick={(s) => setStep(s)}
-        allowStep2={step >= 2}
-      />
+      {step !== 3 && (
+        <CheckoutSteps
+          currentStep={step}
+          onStepClick={(s) => setStep(s)}
+          allowStep2={step >= 2}
+        />
+      )}
 
       <div className={styles.checkoutWrapper}>
         <div className={styles.checkoutLeft}>
@@ -110,22 +171,26 @@ export default function CheckoutPage() {
             <Step2_PaymentForm
               formData={paymentInfo}
               setFormData={setPaymentInfo}
+              errors={paymentErrors}
+              setErrors={setPaymentErrors}
             />
           )}
-          {step === 3 && <Step3_Success />}
+          {step === 3 && <Step3_Success orderId={orderId} />} {/* 🎯 orderId gönderildi */}
         </div>
 
-        <div className={styles.checkoutRight}>
-          <OrderSummary
-            step={step}
-            onClick={handleMainButtonClick}
-            submitted={submitted}
-            isAgreementChecked={isAgreementChecked}
-            setIsAgreementChecked={setIsAgreementChecked}
-            showAgreementError={showAgreementError}
-            setShowAgreementError={setShowAgreementError}
-          />
-        </div>
+        {step !== 3 && (
+          <div className={styles.checkoutRight}>
+            <OrderSummary
+              step={step}
+              onClick={handleMainButtonClick}
+              submitted={submitted}
+              isAgreementChecked={isAgreementChecked}
+              setIsAgreementChecked={setIsAgreementChecked}
+              showAgreementError={showAgreementError}
+              setShowAgreementError={setShowAgreementError}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

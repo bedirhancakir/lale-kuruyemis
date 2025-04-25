@@ -1,12 +1,29 @@
+// components/Checkout/Step3_Success.js
+import Link from "next/link";
+import { FaCheckCircle } from "react-icons/fa";
 import styles from "../../styles/CheckoutPage.module.css";
-import { AiOutlineCheckCircle } from "react-icons/ai";
 
-export default function Step3_Success() {
+export default function Step3_Success({ orderId }) {
   return (
-    <div className={styles.successMessage}>
-      <AiOutlineCheckCircle size={60} color="#28a745" />
-      <h2>Siparişiniz Alındı!</h2>
-      <p>Teşekkür ederiz. Siparişiniz başarıyla alınmıştır ve en kısa sürede kargoya verilecektir.</p>
+    <div className={styles.successContainer}>
+      <div className={styles.successIcon}>
+        <FaCheckCircle size={80} color="#4BB543" />
+      </div>
+
+      <h2 className={styles.successTitle}>Teşekkürler!</h2>
+      <p className={styles.successMessage}>
+        Siparişiniz başarıyla alınmıştır.
+      </p>
+
+      {orderId && (
+        <p className={styles.orderId}>
+          Sipariş Numaranız: <strong>{orderId}</strong>
+        </p>
+      )}
+
+      <Link href="/">
+        <button className={styles.successButton}>Alışverişe Devam Et</button>
+      </Link>
     </div>
   );
 }

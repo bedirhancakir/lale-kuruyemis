@@ -1,21 +1,10 @@
-import Head from 'next/head'
-import { useEffect, useState } from 'react'
-import { getFavorites } from '../lib/favoritesUtils'
-import ProductCard from '../components/ProductCard'
-import styles from '../styles/FavoritesPage.module.css'
+import Head from "next/head";
+import ProductCard from "../components/ProductCard";
+import styles from "../styles/FavoritesPage.module.css";
+import { useFavorites } from "../context/FavoritesContext";
 
 export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState([])
-
-  useEffect(() => {
-    setFavorites(getFavorites())
-
-    const syncInterval = setInterval(() => {
-      setFavorites(getFavorites())
-    }, 500)
-
-    return () => clearInterval(syncInterval)
-  }, [])
+  const { favorites } = useFavorites();
 
   return (
     <>
@@ -38,5 +27,5 @@ export default function FavoritesPage() {
         )}
       </section>
     </>
-  )
+  );
 }
