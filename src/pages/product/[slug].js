@@ -1,19 +1,44 @@
 import Head from "next/head";
 import Image from "next/image";
-import { useState } from "react";
-import { getStaticPaths, getStaticProps } from "../../lib/getProductData";
+import { useRouter } from "next/router";
+import { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
 import { useFavorites } from "../../context/FavoritesContext";
-
-import { AiOutlinePlus, AiFillHeart, AiOutlineHeart, AiOutlineCheck } from "react-icons/ai";
 import styles from "../../styles/ProductDetailPage.module.css";
+import { AiOutlinePlus, AiFillHeart, AiOutlineHeart, AiOutlineCheck } from "react-icons/ai";
 
-export { getStaticPaths, getStaticProps };
+export default function ProductDetailPage() {
+  const router = useRouter();
+  const { slug } = router.query;
 
-export default function ProductDetailPage({ product }) {
-  const [added, setAdded] = useState(false);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const [added, setAdded] = useState(false);
+
+  useEffect(() => {
+    if (!slug) return;
+    
+    async function fetchProduct() {
+      const res = await fetch("/api/products");
+      const data = await res.json();
+      const foundProduct = data.find((p) => 
+        p.name.toLowerCase().replace(/\s+/g, "-") === slug && p.status === "aktif"
+      );
+      
+      if (foundProduct) {
+        setProduct(foundProduct);
+      }
+      
+      setLoading(false);
+    }
+
+    fetchProduct();
+  }, [slug]);
+
+  if (loading) return <p>Yükleniyor...</p>;
 
   if (!product) {
     return (
@@ -51,6 +76,7 @@ export default function ProductDetailPage({ product }) {
             width={600}
             height={400}
             className={styles.image}
+            priority
           />
         </div>
 
@@ -75,7 +101,7 @@ export default function ProductDetailPage({ product }) {
             <button
               onClick={handleToggleFavorite}
               className={styles.favButton}
-              aria-label="Favorilere ekle"
+              aria-label="Favorilere ekle veya çıkar"
             >
               {favorited ? (
                 <AiFillHeart className={styles.filledHeart} />

@@ -6,15 +6,18 @@ import { customAlphabet } from "nanoid";
 const nanoid = customAlphabet("1234567890ABCDEFGHJKLMNPQRSTUVWXYZ", 6);
 
 export default function handler(req, res) {
-  if (req.method === "POST") {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method Not Allowed" });
+  }
+
+  try {
     const {
       deliveryInfo,
       cartItems,
       total,
-      paymentMethod = "Kart", // 👈 varsayılan olarak sadece 'Kart'
+      paymentMethod = "Kart", // 🔒 Sadece "Kart" destekleniyor
     } = req.body;
 
-    // 📦 Sipariş ID (SEO dostu, benzersiz)
     const orderId = `LAL-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${nanoid()}`;
 
     const newOrder = {
@@ -23,22 +26,26 @@ export default function handler(req, res) {
       deliveryInfo,
       cartItems,
       total,
-      paymentMethod, // 🔒 sadece "Kart"
+      paymentMethod,
       status: "Hazırlanıyor",
     };
 
     const filePath = path.join(process.cwd(), "data", "orders.json");
 
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify([newOrder], null, 2));
-    } else {
-      const existingData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-      existingData.push(newOrder);
-      fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
+    let orders = [];
+
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, "utf-8");
+      orders = JSON.parse(data || "[]"); // Eğer boşsa boş array olsun
     }
 
-    return res.status(201).json({ success: true, orderId });
-  }
+    orders.push(newOrder);
 
-  res.status(405).json({ error: "Method Not Allowed" });
+    fs.writeFileSync(filePath, JSON.stringify(orders, null, 2));
+
+    return res.status(201).json({ success: true, orderId });
+  } catch (error) {
+    console.error("Order Save Error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 }

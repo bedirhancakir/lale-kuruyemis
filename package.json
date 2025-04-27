@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "cookie": "^1.0.2",
+    "jsonwebtoken": "^9.0.2",
     "nanoid": "^5.1.5",
     "next": "15.3.0",
     "react": "^19.0.0",

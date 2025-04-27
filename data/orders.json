@@ -1350,5 +1350,34 @@
     "total": 490,
     "paymentMethod": "Kart",
     "status": "Hazırlanıyor"
+  },
+  {
+    "id": "LAL-20250427-8T54YR",
+    "createdAt": "2025-04-27T17:00:30.864Z",
+    "deliveryInfo": {
+      "email": "bedirhanckr00@gmail.com",
+      "firstName": "Bedirhan",
+      "lastName": "Çakır",
+      "country": "Türkiye",
+      "city": "Bilecik",
+      "district": "Sarıyer",
+      "phone": "05389537942",
+      "address": "Ferahevler Mahallesi, Adnan Kahveci Caddesi, Özmutlu Sokak, no:16/3",
+      "note": ""
+    },
+    "cartItems": [
+      {
+        "id": 3,
+        "slug": "badem-ici",
+        "name": "Badem İçi",
+        "price": 190,
+        "description": "İç badem, yumuşak ve lezzetli.",
+        "image": "/images/placeholder.jpg",
+        "quantity": 1
+      }
+    ],
+    "total": 190,
+    "paymentMethod": "Kart",
+    "status": "Hazırlanıyor"
   }
 ]

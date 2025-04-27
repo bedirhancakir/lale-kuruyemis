@@ -2,17 +2,46 @@ import fs from "fs";
 import path from "path";
 import styles from "../../styles/AdminOrders.module.css";
 import Link from "next/link";
-import { useState } from "react";
+import { parse } from "cookie";
+import { verify } from "jsonwebtoken";
 
-export async function getServerSideProps() {
-  const filePath = path.join(process.cwd(), "data", "orders.json");
-  const fileContents = fs.readFileSync(filePath, "utf-8");
-  const orders = JSON.parse(fileContents);
-  return {
-    props: {
-      orders: orders.reverse(),
-    },
-  };
+export async function getServerSideProps({ req }) {
+  const { adminToken } = parse(req.headers.cookie || "");
+  const jwtSecret = process.env.JWT_SECRET;
+
+  if (!adminToken) {
+    return {
+      redirect: {
+        destination: "/admin/login",
+        permanent: false,
+      },
+    };
+  }
+
+  try {
+    verify(adminToken, jwtSecret);
+
+    const filePath = path.join(process.cwd(), "data", "orders.json");
+    if (!fs.existsSync(filePath)) {
+      return { props: { orders: [] } };
+    }
+
+    const fileContents = fs.readFileSync(filePath, "utf-8");
+    const orders = JSON.parse(fileContents);
+
+    return {
+      props: {
+        orders: orders.reverse(),
+      },
+    };
+  } catch (error) {
+    return {
+      redirect: {
+        destination: "/admin/login",
+        permanent: false,
+      },
+    };
+  }
 }
 
 const getStatusClass = (status) => {
@@ -29,20 +58,6 @@ const getStatusClass = (status) => {
 };
 
 export default function AdminOrdersPage({ orders }) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
-
-  // Sayfalama işlemi
-  const totalPages = Math.ceil(orders.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedOrders = orders.slice(startIndex, startIndex + itemsPerPage);
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Siparişler</h1>
@@ -66,10 +81,10 @@ export default function AdminOrdersPage({ orders }) {
         </div>
       </div>
 
-      {paginatedOrders.length === 0 ? (
+      {orders.length === 0 ? (
         <p>Hiç sipariş bulunamadı.</p>
       ) : (
-        <>
+        <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -83,9 +98,9 @@ export default function AdminOrdersPage({ orders }) {
               </tr>
             </thead>
             <tbody>
-              {paginatedOrders.map((order, index) => (
+              {orders.map((order, index) => (
                 <tr key={order.id}>
-                  <td>{startIndex + index + 1}</td>
+                  <td>{index + 1}</td>
                   <td>{order.id}</td>
                   <td>
                     {order.deliveryInfo.firstName}{" "}
@@ -109,12 +124,8 @@ export default function AdminOrdersPage({ orders }) {
               ))}
             </tbody>
           </table>
-        </>
+        </div>
       )}
-
-      <div className={styles.pagination}>
-        {/* Sayfalama butonları kaldırılmadı */}
-      </div>
     </div>
   );
 }
