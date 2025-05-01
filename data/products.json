@@ -1,0 +1,24 @@
+[
+  {
+    "id": "8SAmJiRk",
+    "name": "Fındık",
+    "slug": "findik",
+    "description": "Kavrulmuş Fındık",
+    "price": 155,
+    "image": "/uploads/findik_7346dd55.png",
+    "category": "kuruyemis",
+    "subcategory": "kavrulmus-kuruyemisler",
+    "status": "aktif"
+  },
+  {
+    "id": "uzZ4x4oB",
+    "name": "Çiğ Fındık",
+    "slug": "cig-findik",
+    "description": "Taze Çiğ",
+    "price": 120,
+    "image": "/uploads/cig-findik_5c906df3.png",
+    "category": "kuruyemis",
+    "subcategory": "cig-kuruyemisler",
+    "status": "aktif"
+  }
+]

@@ -1,12 +1,22 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
 .title {
-    margin-bottom: 0.5rem;
-    font-size: 1.5rem;
-  }
-  
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1rem;
-  }
-  
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.content {
+  display: flex;
+  gap: 2rem;
+}
+
+.grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}

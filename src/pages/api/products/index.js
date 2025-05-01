@@ -12,7 +12,9 @@ function readProducts() {
 export default function handler(req, res) {
   if (req.method === "GET") {
     const products = readProducts();
-    const activeProducts = products.filter((product) => product.status === "aktif");
+    const activeProducts = products.filter(
+      (product) => product.status === "aktif"
+    ); // 🔥 SADECE AKTİFLER
     return res.status(200).json(activeProducts);
   }
 

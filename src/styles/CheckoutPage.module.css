@@ -220,7 +220,7 @@
   padding: 3rem 2rem;
   background-color: #fff;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   animation: fadeIn 0.5s ease-in-out;
 }
 
@@ -248,7 +248,7 @@
 }
 
 .successButton {
-  background-color: #4BB543;
+  background-color: #4bb543;
   color: white;
   border: none;
   padding: 0.8rem 2rem;
@@ -262,7 +262,6 @@
   background-color: #3fa33d;
 }
 
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -273,7 +272,6 @@
     transform: translateY(0);
   }
 }
-
 
 /* === Responsive === */
 @media (max-width: 768px) {

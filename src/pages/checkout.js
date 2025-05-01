@@ -1,9 +1,9 @@
 import { useState } from "react";
-import CheckoutSteps from "../components/Checkout/CheckoutSteps";
-import Step1_DeliveryForm from "../components/Checkout/Step1_DeliveryForm";
-import Step2_PaymentForm from "../components/Checkout/Step2_PaymentForm";
-import Step3_Success from "../components/Checkout/Step3_Success";
-import OrderSummary from "../components/Checkout/OrderSummary";
+import CheckoutSteps from "../components/checkout-forms/CheckoutSteps";
+import Step1_DeliveryForm from "../components/checkout-forms/DeliveryForm";
+import Step2_PaymentForm from "../components/checkout-forms/PaymentForm";
+import Step3_Success from "../components/checkout-forms/SuccessPayment";
+import OrderSummary from "../components/checkout-forms/OrderSummary";
 import { useCart } from "../context/CartContext";
 import styles from "../styles/CheckoutPage.module.css";
 

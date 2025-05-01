@@ -1,0 +1,58 @@
+[
+  {
+    "id": "vCCLhbXZ",
+    "email": "bedirhan@gmail.com",
+    "username": "bedirhan",
+    "password": "$2b$10$6GYyHVKXsPzadq4bdsqVVegpgU5yPxzAc0joTJs8KTHUGVV9BGv0O",
+    "createdAt": "2025-04-28T22:40:52.615Z"
+  },
+  {
+    "id": "b1thB76F",
+    "email": "osman@gmail.com",
+    "username": "osman",
+    "password": "$2b$10$jtAwAj/9NfvsPBuvnBARmujcZtsw8ed5H2TSPpBQEmY7WjZIJQ7lW",
+    "createdAt": "2025-04-28T22:49:27.743Z"
+  },
+  {
+    "id": "6msr8N8B",
+    "email": "halime@gmail.com",
+    "username": "halime",
+    "password": "$2b$10$r0GzyagrBPQYmPrARKaBBuE311QdjGvr64ieKgPOjYRcfzOGzOBYm",
+    "createdAt": "2025-04-28T22:54:55.844Z"
+  },
+  {
+    "id": "8VPStBoX",
+    "email": "gozde@gmail.com",
+    "username": "gözde",
+    "password": "$2b$10$WfFZqv.8yteQ45rXi.U8M.PESoBu99gIgfZx0kJQmgoIzTxzcz9mK",
+    "createdAt": "2025-04-28T22:56:47.339Z"
+  },
+  {
+    "id": "KZncbMT9",
+    "email": "furkan@gmail.com",
+    "username": "furkan",
+    "password": "$2b$10$zBhtwIde9OVpuxVJFv3KmOqfYJdSbWAbpLzFvylgoIJViepc8JHJq",
+    "createdAt": "2025-04-28T23:07:49.238Z"
+  },
+  {
+    "id": "GZpnull1",
+    "username": "ayşe",
+    "email": "ayse@gmail.com",
+    "password": "$2b$10$Dd8/LcbGuCp1T5KoimOdUuHzG9fS3bvTZjZtKAg5MqkfDjlnydiT6",
+    "createdAt": "2025-04-28T23:55:42.361Z"
+  },
+  {
+    "id": "3FN_uSZk",
+    "username": "ahmetinecad",
+    "email": "atme@gmail.com",
+    "password": "$2b$10$2udA2Cp4St1I3zfxcgTa/.6rFitjsy17QEoYVa9Hvk4Q/pi/mwT92",
+    "createdAt": "2025-04-29T00:02:07.927Z"
+  },
+  {
+    "id": "IiNLTl6h",
+    "email": "selenay@gmail.com",
+    "username": "selenay",
+    "password": "$2b$10$Ay1Mi/lOWvT8COMFJ1WyBODXueT7kOjZnWVIxqBJ2S1X1Jn/bWaHi",
+    "createdAt": "2025-04-29T13:21:04.372Z"
+  }
+]

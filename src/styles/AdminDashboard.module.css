@@ -1,0 +1,83 @@
+.container {
+  padding: 2rem;
+  max-width: 900px;
+  margin: auto;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.statsGrid {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  flex: 1;
+  min-width: 200px;
+  background-color: #f4f4f4;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.statCard h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+.statCard p {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #222;
+}
+
+.topProducts {
+  margin-top: 2rem;
+}
+
+.topProducts h2 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.productList {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+
+.productList li {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 0.5rem;
+}
+
+.recentOrders {
+  margin-top: 2.5rem;
+}
+
+.recentOrders h2 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.orderList {
+  list-style: none;
+  padding-left: 0;
+}
+
+.orderList li {
+  margin-bottom: 0.7rem;
+  font-size: 0.95rem;
+  color: #444;
+}

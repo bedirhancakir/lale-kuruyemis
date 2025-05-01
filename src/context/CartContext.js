@@ -21,7 +21,9 @@ export function CartProvider({ children }) {
     if (existing) {
       setCartItems((prev) =>
         prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
         )
       );
     } else {
@@ -45,6 +47,10 @@ export function CartProvider({ children }) {
     setCartItems([]);
   };
 
+  const cartItemCount = () => {
+    return cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -53,6 +59,7 @@ export function CartProvider({ children }) {
         removeFromCart,
         updateQuantity,
         clearCart,
+        cartItemCount, // Sepetteki ürün sayısını header'da gösterdiğimiz değer
       }}
     >
       {children}
