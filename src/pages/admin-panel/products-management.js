@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import ProductModal from "../../components/admin-panel/ProductModal";
 import Image from "next/image";
 import styles from "../../styles/AdminProducts.module.css";
+import ConfirmPopup from "../../components/admin-panel/ConfirmPopup";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [confirmPopup, setConfirmPopup] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -36,40 +38,61 @@ export default function AdminProductsPage() {
     setIsModalOpen(true);
   }
 
-  async function handleDeleteProduct(id) {
-    if (!confirm("Bu ürünü tamamen silmek istiyor musunuz?")) return;
-    try {
-      await fetch(`/api/admin/admin-products/${id}`, { method: "DELETE" });
-      fetchProducts();
-    } catch (error) {
-      console.error("Silme hatası:", error.message);
-    }
+  function handleDeleteProduct(id) {
+    setConfirmPopup({
+      title: "Ürünü Sil",
+      message: "Bu ürünü tamamen silmek istediğinize emin misiniz?",
+      onConfirm: async () => {
+        try {
+          await fetch(`/api/admin/admin-products/${id}`, { method: "DELETE" });
+          fetchProducts();
+        } catch (error) {
+          console.error("Silme hatası:", error.message);
+        } finally {
+          setConfirmPopup(null);
+        }
+      },
+    });
   }
 
-  async function handleArchiveProduct(id) {
-    if (!confirm("Bu ürünü arşivlemek istiyor musunuz?")) return;
-    try {
-      await fetch(`/api/admin/admin-products/${id}?archive=true`, {
-        method: "DELETE",
-      });
-      fetchProducts();
-    } catch (error) {
-      console.error("Arşivleme hatası:", error.message);
-    }
+  function handleArchiveProduct(id) {
+    setConfirmPopup({
+      title: "Ürünü Arşivle",
+      message: "Bu ürünü arşivlemek istediğinize emin misiniz?",
+      onConfirm: async () => {
+        try {
+          await fetch(`/api/admin/admin-products/${id}?archive=true`, {
+            method: "DELETE",
+          });
+          fetchProducts();
+        } catch (error) {
+          console.error("Arşivleme hatası:", error.message);
+        } finally {
+          setConfirmPopup(null);
+        }
+      },
+    });
   }
 
-  async function handleActivateProduct(id) {
-    if (!confirm("Bu ürünü tekrar aktif etmek istiyor musunuz?")) return;
-    try {
-      await fetch(`/api/admin/admin-products/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "aktif" }),
-      });
-      fetchProducts();
-    } catch (error) {
-      console.error("Aktifleştirme hatası:", error.message);
-    }
+  function handleActivateProduct(id) {
+    setConfirmPopup({
+      title: "Ürünü Aktifleştir",
+      message: "Bu ürünü tekrar aktif etmek istiyor musunuz?",
+      onConfirm: async () => {
+        try {
+          await fetch(`/api/admin/admin-products/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "aktif" }),
+          });
+          fetchProducts();
+        } catch (error) {
+          console.error("Aktifleştirme hatası:", error.message);
+        } finally {
+          setConfirmPopup(null);
+        }
+      },
+    });
   }
 
   return (
@@ -89,14 +112,30 @@ export default function AdminProductsPage() {
               product.status === "arşivli" ? styles.archivedCard : ""
             }`}
           >
-            <Image
-              src={product.image}
-              alt={product.name}
-              width={300}
-              height={300}
-              className={styles.productImage}
-              priority
-            />
+            <div className={styles.imageWrapper}>
+              <Image
+                src={product.image}
+                alt={product.name}
+                width={300}
+                height={300}
+                className={styles.productImage}
+                priority
+              />
+              {/* Badge Alanı */}
+              <div className={styles.badgeContainer}>
+                {product.isFeatured && <span className={styles.badge}>⭐</span>}
+                {product.isRecommended && (
+                  <span className={styles.badge}>🎯</span>
+                )}
+                {product.isBestSeller && (
+                  <span className={styles.badge}>🔥</span>
+                )}
+                {product.isDiscounted && (
+                  <span className={styles.badge}>💸</span>
+                )}
+              </div>
+            </div>
+
             {product.status === "arşivli" && (
               <div className={styles.badge}>Arşivli</div>
             )}
@@ -144,6 +183,15 @@ export default function AdminProductsPage() {
           refreshProducts={fetchProducts}
           selectedProduct={selectedProduct}
           isEditing={isEditing}
+        />
+      )}
+
+      {confirmPopup && (
+        <ConfirmPopup
+          title={confirmPopup.title}
+          message={confirmPopup.message}
+          onConfirm={confirmPopup.onConfirm}
+          onCancel={() => setConfirmPopup(null)}
         />
       )}
     </div>

@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import AdminNavbar from "../components/admin-panel/AdminNavbar";
 import { CartProvider } from "../context/CartContext";
 import { FavoritesProvider } from "../context/FavoritesContext";
+import { CategoryProvider } from "../context/CategoryContext"; // ✅
 
 import { useRouter } from "next/router";
 
@@ -14,11 +15,13 @@ export default function MyApp({ Component, pageProps }) {
   return (
     <CartProvider>
       <FavoritesProvider>
-        {isAdminPage ? <AdminNavbar /> : <Header />}
-        <main>
-          <Component {...pageProps} />
-        </main>
-        {!isAdminPage && <Footer />}
+        <CategoryProvider>
+          {isAdminPage ? <AdminNavbar /> : <Header />}
+          <main>
+            <Component {...pageProps} />
+          </main>
+          {!isAdminPage && <Footer />}
+        </CategoryProvider>
       </FavoritesProvider>
     </CartProvider>
   );

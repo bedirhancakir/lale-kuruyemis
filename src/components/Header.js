@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useCart } from "../context/CartContext";
+import { useCategories } from "../context/CategoryContext";
 import Image from "next/image";
 import styles from "./Header.module.css";
 import {
@@ -12,16 +12,8 @@ import {
 export default function Header() {
   const router = useRouter();
   const { cartItems, cartItemCount } = useCart();
-  const [categories, setCategories] = useState([]);
+  const categories = useCategories(); // ✅ Context'ten veri al
 
-  // ✅ Sayfa yüklendiğinde kategorileri al
-  useEffect(() => {
-    fetch("/api/public/categories")
-      .then((res) => res.json())
-      .then(setCategories);
-  }, []);
-
-  // ✅ Aynı URL'e tekrar gitmeye çalışmamak için kontrol
   const handleNavigation = (url) => {
     if (router.asPath !== url) {
       router.push(url);
@@ -31,7 +23,6 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.left}>
-        {/* ✅ Logo */}
         <span className={styles.logoLink} onClick={() => handleNavigation("/")}>
           <Image
             src="/images/placeholder.jpg"
@@ -42,11 +33,9 @@ export default function Header() {
           />
         </span>
 
-        {/* ✅ Ana kategoriler ve dropdown */}
         <nav className={styles.nav}>
           {categories.map((category) => (
             <div key={category.id} className={styles.navItem}>
-              {/* ✅ Ana kategoriye tıklanınca Tümü sayfasına gider */}
               <span
                 className={styles.navLink}
                 onClick={() => handleNavigation(`/products/${category.id}`)}
@@ -54,22 +43,16 @@ export default function Header() {
                 {category.name}
               </span>
 
-              {/* 🔽 Alt kategori dropdown */}
               {category.subcategories.length > 0 && (
                 <ul className={styles.dropdown}>
-                  {/* ✅ Tümü seçeneği */}
                   <li key="tumu">
                     <span
                       className={styles.dropdownLink}
-                      onClick={() =>
-                        handleNavigation(`/products/${category.id}`)
-                      }
+                      onClick={() => handleNavigation(`/products/${category.id}`)}
                     >
                       Tümü
                     </span>
                   </li>
-
-                  {/* ✅ Alt kategoriler */}
                   {category.subcategories.map((sub) => (
                     <li key={sub.id}>
                       <span
@@ -89,7 +72,6 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* ✅ Sağ üst: Favori - Sepet - Kullanıcı */}
       <div className={styles.right}>
         <span
           className={styles.iconBtn}
@@ -110,7 +92,7 @@ export default function Header() {
 
         <span
           className={styles.iconBtn}
-          onClick={() => handleNavigation("/profile")}
+          onClick={() => handleNavigation("/")}
         >
           <AiOutlineUser />
         </span>

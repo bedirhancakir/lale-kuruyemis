@@ -4,6 +4,7 @@ out/
 build/
 dist/
 .env
+package-lock.json
 .env.*
 !.env.example
 npm-debug.log*

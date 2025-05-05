@@ -28,14 +28,12 @@ export default function ProductModal({
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [image, setImage] = useState("");
-
-  // ✅ Kategori state'leri
+  const [imageFile, setImageFile] = useState(null);
   const [categories, setCategories] = useState([]);
   const [categoryId, setCategoryId] = useState("");
   const [subcategoryId, setSubcategoryId] = useState("");
 
   useEffect(() => {
-    // ✅ Artık API route üzerinden alıyoruz
     fetch("/api/public/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data));
@@ -45,55 +43,69 @@ export default function ProductModal({
     if (isEditing && selectedProduct) {
       setName(selectedProduct.name || "");
       setDescription(selectedProduct.description || "");
-      setPrice(selectedProduct.price || "");
+      setPrice(selectedProduct.price?.toString() || "");
       setImage(selectedProduct.image || "");
       setCategoryId(selectedProduct.category || "");
       setSubcategoryId(selectedProduct.subcategory || "");
+      setImageFile(null);
     }
   }, [isEditing, selectedProduct]);
 
-  async function handleFileChange(e) {
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("name", name);
+    if (!file.type.startsWith("image/")) {
+      alert("Sadece görsel dosyaları yükleyebilirsiniz.");
+      return;
+    }
 
-    try {
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Görsel boyutu en fazla 5MB olabilir.");
+      return;
+    }
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Yükleme hatası:", errorText);
+    setImageFile(file);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    let finalImage = image;
+
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append("file", imageFile);
+      formData.append("name", name);
+      formData.append("type", "product-images");
+
+      try {
+        const res = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.url) {
+          alert("Görsel yüklenemedi.");
+          return;
+        }
+
+        finalImage = data.url;
+      } catch (err) {
+        console.error("Upload hatası:", err);
         alert("Görsel yüklenemedi.");
         return;
       }
-
-      const data = await res.json();
-      if (data.url) {
-        setImage(data.url);
-      } else {
-        alert("Görsel yüklenemedi.");
-      }
-    } catch (err) {
-      console.error("Upload exception:", err);
-      alert("Yükleme sırasında bir hata oluştu.");
     }
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
 
     const productData = {
       name,
       slug: slugify(name),
       description,
-      price,
-      image,
+      price: parseFloat(price),
+      image: finalImage,
       category: categoryId,
       subcategory: subcategoryId,
       status: "aktif",
@@ -106,18 +118,23 @@ export default function ProductModal({
 
       const method = isEditing ? "PUT" : "POST";
 
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productData),
       });
 
+      if (!res.ok) {
+        throw new Error("Kayıt başarısız.");
+      }
+
       refreshProducts();
       closeModal();
     } catch (error) {
       console.error("Ürün kaydedilemedi:", error);
+      alert("Ürün kaydedilemedi.");
     }
-  }
+  };
 
   return (
     <div className={styles.modalOverlay}>
@@ -138,17 +155,18 @@ export default function ProductModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-          ></textarea>
+          />
 
           <input
             type="number"
+            step="0.01"
+            min="0"
             placeholder="Fiyat (₺)"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             required
           />
 
-          {/* ✅ Kategori Seçimi */}
           <select
             value={categoryId}
             onChange={(e) => {
@@ -165,7 +183,6 @@ export default function ProductModal({
             ))}
           </select>
 
-          {/* ✅ Alt Kategori Seçimi */}
           {categoryId && (
             <select
               value={subcategoryId}
@@ -185,20 +202,27 @@ export default function ProductModal({
 
           <input type="file" accept="image/*" onChange={handleFileChange} />
 
-          {image && (
-            <div
-              style={{
-                marginTop: "1rem",
-                position: "relative",
-                width: "100%",
-                height: "200px",
-              }}
-            >
+          {/* Yeni seçilen görselin önizlemesi */}
+          {imageFile && (
+            <div className={styles.imagePreview}>
+              <Image
+                src={URL.createObjectURL(imageFile)}
+                alt="Yeni seçilen görsel"
+                width={400}
+                height={200}
+                style={{ objectFit: "contain" }}
+              />
+            </div>
+          )}
+
+          {/* Düzenleme modundaki mevcut görselin önizlemesi */}
+          {!imageFile && image && (
+            <div className={styles.imagePreview}>
               <Image
                 src={image}
-                alt="Yüklenen görsel"
-                fill
-                sizes="500px"
+                alt="Mevcut görsel"
+                width={400}
+                height={200}
                 style={{ objectFit: "contain" }}
               />
             </div>

@@ -47,9 +47,15 @@ export default async function handler(req, res) {
       description,
       price: parseFloat(price),
       image,
-      category, // ✅ Kategori eklendi
-      subcategory, // ✅ Alt kategori eklendi
+      category,
+      subcategory,
       status: "aktif",
+
+      // ✅ Etiket alanları varsayılan olarak false
+      isFeatured: false,
+      isRecommended: false,
+      isBestSeller: false,
+      isDiscounted: false,
     };
 
     const products = await readProducts();

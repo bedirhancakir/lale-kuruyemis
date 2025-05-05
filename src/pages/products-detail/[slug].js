@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
 import { useFavorites } from "../../context/FavoritesContext";
+import { useCategories } from "../../context/CategoryContext"; // ✅
 import styles from "../../styles/ProductDetailPage.module.css";
 import {
   AiOutlinePlus,
@@ -15,41 +16,30 @@ import {
 export default function ProductDetailPage() {
   const router = useRouter();
   const { slug } = router.query;
+  const categories = useCategories(); // ✅ context'ten al
 
   const [product, setProduct] = useState(null);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
   const [added, setAdded] = useState(false);
 
-  // Ürün ve kategori verilerini aynı anda çekiyoruz
   useEffect(() => {
     if (!slug) return;
 
-    async function fetchProductAndCategories() {
-      const [productRes, catRes] = await Promise.all([
-        fetch("/api/products"),
-        fetch("/api/public/categories"),
-      ]);
-
-      const productsData = await productRes.json();
-      const categoriesData = await catRes.json();
-
-      const foundProduct = productsData.find(
+    async function fetchProduct() {
+      const res = await fetch("/api/products");
+      const data = await res.json();
+      const found = data.find(
         (p) => p.slug === slug && p.status === "aktif"
       );
 
-      if (foundProduct) {
-        setProduct(foundProduct);
-        setCategories(categoriesData);
-      }
-
+      if (found) setProduct(found);
       setLoading(false);
     }
 
-    fetchProductAndCategories();
+    fetchProduct();
   }, [slug]);
 
   if (loading) return <p>Yükleniyor...</p>;
@@ -75,7 +65,6 @@ export default function ProductDetailPage() {
     toggleFavorite(product);
   };
 
-  // Ürünün kategori ve alt kategori adlarını bul
   const categoryName =
     categories.find((cat) => cat.id === product.category)?.name || "";
 
@@ -106,7 +95,6 @@ export default function ProductDetailPage() {
         <div className={styles.infoCard}>
           <h1>{product.name}</h1>
 
-          {/* Breadcrumb: Kategori ve alt kategori ayrı ayrı tıklanabilir */}
           {categoryName && subcategoryName && (
             <p className={styles.breadcrumb}>
               <span

@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { useFavorites } from "../../context/FavoritesContext";
-
 import {
   AiOutlinePlus,
   AiOutlineCheck,
@@ -12,10 +11,11 @@ import {
 } from "react-icons/ai";
 import styles from "./ProductCard.module.css";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, isSlider = false }) {
   const [added, setAdded] = useState(false);
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const [dragging, setDragging] = useState(false);
 
   const favorited = isFavorite(product.id);
 
@@ -31,9 +31,23 @@ export default function ProductCard({ product }) {
     toggleFavorite(product);
   };
 
+  const handleMouseDown = () => setDragging(false);
+  const handleMouseMove = () => setDragging(true);
+  const handleClick = (e) => {
+    if (dragging) {
+      e.preventDefault();
+    }
+  };
+
   return (
-    <Link href={`/products-detail/${product.slug}`} className={styles.link}>
-      <article className={styles.card}>
+    <Link
+      href={`/products-detail/${product.slug}`}
+      className={styles.link}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onClick={handleClick}
+    >
+      <article className={`${styles.card} ${isSlider ? styles.sliderCard : ""}`}>
         <Image
           src={product.image}
           alt={`${product.name} görseli`}
@@ -58,7 +72,12 @@ export default function ProductCard({ product }) {
           </button>
         </div>
 
-        <p>{product.description}</p>
+        <p>
+          {isSlider
+            ? product.description?.substring(0, 80) + "..."
+            : product.description}
+        </p>
+
         <p className={styles.price}>
           <strong>{product.price}₺</strong>
         </p>

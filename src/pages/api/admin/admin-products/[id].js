@@ -1,4 +1,5 @@
-import { promises as fs } from "fs";
+import fs from "fs/promises";
+import fsSync from "fs";
 import path from "path";
 
 const filePath = path.join(process.cwd(), "data", "products.json");
@@ -25,6 +26,7 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: "Ürün bulunamadı" });
   }
 
+  // ✅ Ürün Güncelleme (PUT)
   if (req.method === "PUT") {
     const {
       name,
@@ -37,28 +39,66 @@ export default async function handler(req, res) {
       slug,
     } = req.body;
 
+    const currentProduct = products[productIndex];
+    const oldImage = currentProduct.image;
+
+    // ✅ Eğer yeni görsel geldiyse ve eskisinden farklıysa, eskiyi sil
+    if (image && oldImage && image !== oldImage) {
+      const oldImagePath = path.join(
+        process.cwd(),
+        "public",
+        oldImage.replace(/^\//, "")
+      );
+      try {
+        if (fsSync.existsSync(oldImagePath)) {
+          await fs.unlink(oldImagePath);
+        }
+      } catch (err) {
+        console.warn("Eski görsel silinemedi:", err.message);
+      }
+    }
+
     // ✅ Güncellenebilir alanlar
-    if (name) products[productIndex].name = name;
-    if (slug) products[productIndex].slug = slug;
-    if (description) products[productIndex].description = description;
-    if (price) products[productIndex].price = parseFloat(price);
-    if (image) products[productIndex].image = image;
-    if (status) products[productIndex].status = status;
-    if (category) products[productIndex].category = category;
-    if (subcategory) products[productIndex].subcategory = subcategory;
+    if (name) currentProduct.name = name;
+    if (slug) currentProduct.slug = slug;
+    if (description) currentProduct.description = description;
+    if (price) currentProduct.price = parseFloat(price);
+    if (image) currentProduct.image = image;
+    if (status) currentProduct.status = status;
+    if (category) currentProduct.category = category;
+    if (subcategory) currentProduct.subcategory = subcategory;
 
     await writeProducts(products);
     return res
       .status(200)
-      .json({ message: "Ürün güncellendi", product: products[productIndex] });
+      .json({ message: "Ürün güncellendi", product: currentProduct });
   }
 
+  // ✅ Ürün Silme (DELETE)
   if (req.method === "DELETE") {
     const { archive } = req.query;
 
     if (archive === "true") {
       products[productIndex].status = "arşivli";
     } else {
+      // ✅ Görsel dosyasını da sil
+      const imagePath = products[productIndex].image;
+      if (imagePath) {
+        const resolvedPath = path.join(
+          process.cwd(),
+          "public",
+          imagePath.replace(/^\//, "")
+        );
+        try {
+          if (fsSync.existsSync(resolvedPath)) {
+            await fs.unlink(resolvedPath);
+          }
+        } catch (err) {
+          console.warn("Görsel silinemedi:", err.message);
+        }
+      }
+
+      // Ürünü diziden kaldır
       products.splice(productIndex, 1);
     }
 

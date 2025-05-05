@@ -1,0 +1,23 @@
+[
+  {
+    "id": "65f23962-1747-4b63-9f00-16df631822f6",
+    "filename": "banner_f671a53b.jpg",
+    "order": 1,
+    "title": "",
+    "link": ""
+  },
+  {
+    "id": "13cfe758-0c8e-488d-9324-1b0c0aa2622f",
+    "filename": "banner_a0ab9fa0.jpg",
+    "order": 2,
+    "title": "",
+    "link": "/"
+  },
+  {
+    "id": "90762135-8c77-4f2d-87c6-dad5971de133",
+    "filename": "deneme_7a67b5eb.png",
+    "order": 3,
+    "title": "deneme",
+    "link": ""
+  }
+]

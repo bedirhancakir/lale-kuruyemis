@@ -2,44 +2,97 @@
   {
     "id": "kuruyemis",
     "name": "Kuruyemiş",
+    "description": "Doğal ve taptaze kuruyemiş çeşitlerimizle sofralarınıza lezzet katın.",
+    "image": "/banners/placeholder.jpg",
     "subcategories": [
-      { "id": "karisik-kuruyemisler", "name": "Karışık Kuruyemişler" },
-      { "id": "cig-kuruyemisler", "name": "Çiğ Kuruyemişler" },
-      { "id": "kavrulmus-kuruyemisler", "name": "Kavrulmuş Kuruyemişler" }
+      {
+        "id": "karisik-kuruyemisler",
+        "name": "Karışık Kuruyemişler"
+      },
+      {
+        "id": "cig-kuruyemisler",
+        "name": "Çiğ Kuruyemişler"
+      },
+      {
+        "id": "kavrulmus-kuruyemisler",
+        "name": "Kavrulmuş Kuruyemişler"
+      }
     ]
   },
   {
     "id": "kuru-meyve",
     "name": "Kuru Meyve",
     "subcategories": [
-      { "id": "kayisi-cesitleri", "name": "Kayısı Çeşitleri" },
-      { "id": "hurma-cesitleri", "name": "Hurma Çeşitleri" },
-      { "id": "incir-cesitleri", "name": "İncir Çeşitleri" },
-      { "id": "uzum-cesitleri", "name": "Üzüm Çeşitleri" },
-      { "id": "erik-cesitleri", "name": "Erik Çeşitleri" },
-      { "id": "tropik-meyveler", "name": "Tropik Meyveler" }
-    ]
+      {
+        "id": "kayisi-cesitleri",
+        "name": "Kayısı Çeşitleri"
+      },
+      {
+        "id": "hurma-cesitleri",
+        "name": "Hurma Çeşitleri"
+      },
+      {
+        "id": "incir-cesitleri",
+        "name": "İncir Çeşitleri"
+      },
+      {
+        "id": "uzum-cesitleri",
+        "name": "Üzüm Çeşitleri"
+      },
+      {
+        "id": "erik-cesitleri",
+        "name": "Erik Çeşitleri"
+      },
+      {
+        "id": "tropik-meyveler",
+        "name": "Tropik Meyveler"
+      }
+    ],
+    "description": "",
+    "image": ""
   },
   {
     "id": "lokum",
     "name": "Lokum",
     "subcategories": [
-      { "id": "cevizli-sucuk-cesitleri", "name": "Cevizli Sucuk Çeşitleri" },
-      { "id": "lokum-cesitleri", "name": "Lokum Çeşitleri" },
-      { "id": "draje-ve-cikolatalar", "name": "Draje ve Çikolatalar" },
-      { "id": "kral-lokumlar", "name": "Kral Lokumlar" }
+      {
+        "id": "cevizli-sucuk-cesitleri",
+        "name": "Cevizli Sucuk Çeşitleri"
+      },
+      {
+        "id": "lokum-cesitleri",
+        "name": "Lokum Çeşitleri"
+      },
+      {
+        "id": "draje-ve-cikolatalar",
+        "name": "Draje ve Çikolatalar"
+      },
+      {
+        "id": "kral-lokumlar",
+        "name": "Kral Lokumlar"
+      }
     ]
   },
   {
     "id": "baharat",
     "name": "Baharat",
-    "subcategories": [{ "id": "biberler", "name": "Biberler" }]
+    "subcategories": [
+      {
+        "id": "biberler",
+        "name": "Biberler"
+      }
+    ],
+    "description": "",
+    "image": ""
   },
   {
     "id": "pastacilik",
     "name": "Pastacılık",
     "subcategories": [
-      { "id": "pastacilik-malzemeleri", "name": "Pastacılık Malzemeleri" }
+      {
+        "id": "pastacilik-malzemeleri",
+        "name": "Pastacılık Malzemeleri"
+      }
     ]
   }
 ]

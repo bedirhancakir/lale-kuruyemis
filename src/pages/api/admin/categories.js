@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 
-// ✅ Türkçe karakterleri normalize eder
+// ✅ Slugify fonksiyonu
 function slugify(text) {
   return text
     .toLowerCase()
@@ -24,16 +24,59 @@ export default async function handler(req, res) {
   let categories = JSON.parse(fileData);
 
   if (req.method === "POST") {
-    const { type, name, categoryId } = req.body;
-
-    // ✅ ID'yi otomatik slugify ediyoruz
+    const {
+      type,
+      name,
+      description = "",
+      image = "",
+      categoryId,
+      forceUpdate,
+      oldId,
+    } = req.body;
     const id = slugify(name);
 
     if (type === "category") {
-      if (categories.find((cat) => cat.id === id)) {
-        return res.status(400).json({ error: "Kategori zaten var" });
+      if (forceUpdate && oldId) {
+        const index = categories.findIndex((cat) => cat.id === oldId);
+        if (index === -1) {
+          return res.status(404).json({ error: "Kategori bulunamadı" });
+        }
+
+        // Eski görsel varsa ve değişmişse sil
+        const oldImage = categories[index].image;
+        if (oldImage && oldImage !== image) {
+          const oldImagePath = path.join(
+            process.cwd(),
+            "public",
+            oldImage.replace(/^\//, "")
+          );
+          try {
+            await fs.unlink(oldImagePath);
+          } catch (err) {
+            console.warn("Eski kategori görseli silinemedi:", err.message);
+          }
+        }
+
+        categories[index] = {
+          ...categories[index],
+          id,
+          name,
+          description,
+          image,
+        };
+      } else {
+        if (categories.find((cat) => cat.id === id)) {
+          return res.status(400).json({ error: "Kategori zaten var" });
+        }
+
+        categories.push({
+          id,
+          name,
+          description,
+          image,
+          subcategories: [],
+        });
       }
-      categories.push({ id, name, subcategories: [] });
     }
 
     if (type === "subcategory") {
@@ -42,14 +85,15 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: "Ana kategori bulunamadı" });
       }
 
-      const subExists = categories[catIndex].subcategories.find(
-        (sub) => sub.id === id
+      const subId = slugify(name);
+      const exists = categories[catIndex].subcategories.find(
+        (sub) => sub.id === subId
       );
-      if (subExists) {
+      if (exists) {
         return res.status(400).json({ error: "Alt kategori zaten var" });
       }
 
-      categories[catIndex].subcategories.push({ id, name });
+      categories[catIndex].subcategories.push({ id: subId, name });
     }
 
     await fs.writeFile(filePath, JSON.stringify(categories, null, 2));
@@ -60,6 +104,21 @@ export default async function handler(req, res) {
     const { type, id, categoryId } = req.body;
 
     if (type === "category") {
+      const deletedCat = categories.find((cat) => cat.id === id);
+
+      if (deletedCat?.image) {
+        const imagePath = path.join(
+          process.cwd(),
+          "public",
+          deletedCat.image.replace(/^\//, "")
+        );
+        try {
+          await fs.unlink(imagePath);
+        } catch (err) {
+          console.warn("Kategori görseli silinemedi:", err.message);
+        }
+      }
+
       categories = categories.filter((cat) => cat.id !== id);
     }
 

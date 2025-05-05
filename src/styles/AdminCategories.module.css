@@ -1,55 +1,67 @@
 .container {
   padding: 2rem;
-  max-width: 800px;
+  max-width: 900px;
   margin: auto;
 }
 
-.formSection {
+.headerRow {
   display: flex;
-  gap: 2rem;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex: 1;
-}
-
-.form input,
-.form select {
-  padding: 0.4rem;
-  font-size: 1rem;
-}
-
-.form button {
-  padding: 0.5rem;
+.createBtn {
   background-color: #4caf50;
   color: white;
   font-weight: bold;
   border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 1rem;
   cursor: pointer;
 }
 
-.form button:hover {
+.createBtn:hover {
   background-color: #3e8e41;
 }
 
-.list {
-  list-style: none;
-  padding-left: 0;
+.list strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.list li {
-  margin-bottom: 0.5rem;
+.deleteBtn,
+.editBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .deleteBtn {
-  background: none;
+  color: #f44336;
+}
+
+.editBtn {
+  color: #2196f3;
+}
+
+.list li {
+  list-style: none;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.subList li {
   border: none;
-  color: red;
-  font-size: 0.9rem;
-  margin-left: 8px;
-  cursor: pointer;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #eee;
+  border-radius: 0;
 }

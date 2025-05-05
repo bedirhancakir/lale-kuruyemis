@@ -103,3 +103,26 @@
   cursor: pointer;
   font-weight: bold;
 }
+
+.imageWrapper {
+  position: relative;
+}
+
+.badgeContainer {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background-color: gold;
+  color: black;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}

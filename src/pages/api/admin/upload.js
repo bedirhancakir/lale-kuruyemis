@@ -30,13 +30,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Sadece POST desteklenir" });
   }
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
-
   const form = new formidable.IncomingForm({
-    uploadDir: uploadsDir,
     keepExtensions: true,
     maxFileSize: 10 * 1024 * 1024,
     multiples: false,
@@ -44,39 +38,63 @@ export default async function handler(req, res) {
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
-      console.error("Form parse hatası:", err);
-      return res
-        .status(500)
-        .json({ error: "Yükleme sırasında bir hata oluştu" });
+      return res.status(500).json({ error: "Yükleme hatası" });
     }
 
-    const fileArray = files.file;
-    const file = Array.isArray(fileArray) ? fileArray[0] : fileArray;
-
+    const file = Array.isArray(files.file) ? files.file[0] : files.file;
     if (!file || !file.filepath) {
       return res.status(400).json({ error: "Dosya bulunamadı" });
     }
 
-    const oldPath = file.filepath;
     const originalName = file.originalFilename || "gorsel";
     const extension = path.extname(originalName).toLowerCase();
-
     const allowedExts = [".jpg", ".jpeg", ".png", ".webp"];
+
     if (!allowedExts.includes(extension)) {
-      fs.unlinkSync(oldPath);
+      fs.unlinkSync(file.filepath);
       return res
         .status(400)
-        .json({ error: "Sadece görsel dosyalar yüklenebilir" });
+        .json({ error: "Sadece .jpg, .png, .webp dosyalar geçerli" });
     }
 
-    // ✅ Ürün adını al (gönderildiğine emin ol)
-    const productName = fields.name || "urun";
+    // ✅ imageType tanımı
+    let imageType = "product-images";
+    if (fields.type === "category-banner") imageType = "category-banners";
+    if (fields.type === "hero-banner") imageType = "hero-banners";
+
+    const uploadDir = path.join(process.cwd(), "public", imageType);
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+    const productName = fields.name || "resim";
     const baseName = slugify(productName);
     const newFileName = `${baseName}_${uuidv4().slice(0, 8)}${extension}`;
-    const newPath = path.join(uploadsDir, newFileName);
+    const newPath = path.join(uploadDir, newFileName);
 
-    fs.renameSync(oldPath, newPath);
+    fs.renameSync(file.filepath, newPath);
 
-    return res.status(200).json({ url: `/uploads/${newFileName}` });
+    // ✅ Eğer hero-banner ise JSON'a da yaz
+    if (fields.type === "hero-banner") {
+      const bannersPath = path.join(process.cwd(), "data", "banners.json");
+
+      let banners = [];
+      try {
+        const raw = fs.readFileSync(bannersPath, "utf-8");
+        banners = JSON.parse(raw);
+      } catch {
+        banners = [];
+      }
+
+      banners.push({
+        id: uuidv4(),
+        filename: newFileName,
+        order: banners.length + 1,
+        title: fields.title || "",
+        link: fields.link || ""
+      });
+
+      fs.writeFileSync(bannersPath, JSON.stringify(banners, null, 2));
+    }
+
+    return res.status(200).json({ url: `/${imageType}/${newFileName}` });
   });
 }

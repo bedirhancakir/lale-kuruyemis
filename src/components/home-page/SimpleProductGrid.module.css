@@ -1,0 +1,14 @@
+.gridSection {
+    margin: 40px 0;
+  }
+  
+  .gridSection h2 {
+    margin-bottom: 16px;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  

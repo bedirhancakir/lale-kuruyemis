@@ -17,6 +17,12 @@ export default function AdminNavbar() {
         <li>
           <Link href="/admin-panel/categories-management">Kategoriler</Link>
         </li>
+        <li>
+          <Link href="/admin-panel/tagged-products-management">Etiketli Ürünler</Link>
+        </li>
+        <li>
+          <Link href="/admin-panel/banners-management">Hero Banner</Link>
+        </li>
       </ul>
     </nav>
   );

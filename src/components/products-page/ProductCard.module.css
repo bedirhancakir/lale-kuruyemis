@@ -90,4 +90,9 @@
     font-size: 1.2rem;
     color: #2ecc71;
   }
+
+  .sliderCard {
+  max-width: 400px;
+  /* margin: 0 auto; */
+}
   
