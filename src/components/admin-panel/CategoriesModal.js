@@ -14,7 +14,9 @@ export default function CategoriesModal({
   const [image, setImage] = useState(category?.image || "");
   const [imageFile, setImageFile] = useState(null);
   const [newSubcategories, setNewSubcategories] = useState("");
-  const [subcategories, setSubcategories] = useState(category?.subcategories || []);
+  const [subcategories, setSubcategories] = useState(
+    category?.subcategories || []
+  );
   const [deletedSubcategories, setDeletedSubcategories] = useState([]);
   const fileInputRef = useRef(null);
 
@@ -47,7 +49,7 @@ export default function CategoriesModal({
       const formData = new FormData();
       formData.append("file", imageFile);
       formData.append("name", name || "kategori");
-      formData.append("type", "banner");
+      formData.append("type", "category-banner");
 
       const uploadRes = await fetch("/api/admin/upload", {
         method: "POST",

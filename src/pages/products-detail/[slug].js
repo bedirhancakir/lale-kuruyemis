@@ -1,59 +1,59 @@
 import Head from "next/head";
-import Image from "next/image";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { useFavorites } from "../../context/FavoritesContext";
-import { useCategories } from "../../context/CategoryContext"; // ✅
+import { useCategories } from "../../context/CategoryContext";
 import styles from "../../styles/ProductDetailPage.module.css";
-import {
-  AiOutlinePlus,
-  AiFillHeart,
-  AiOutlineHeart,
-  AiOutlineCheck,
-} from "react-icons/ai";
 
-export default function ProductDetailPage() {
+import ProductImage from "../../components/products-detail/ProductImage";
+import ProductInfoCard from "../../components/products-detail/ProductInfoCard";
+import ProductTabs from "../../components/products-detail/ProductTabs";
+import RelatedProductsSlider from "../../components/products-detail/RelatedProdutcsSlider";
+
+export async function getStaticPaths() {
+  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+  const res = await fetch(`${baseUrl}/api/products`);
+  const data = await res.json();
+  const paths = data.map((p) => ({ params: { slug: p.slug } }));
+  return { paths, fallback: "blocking" };
+}
+
+export async function getStaticProps({ params }) {
+  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+  const productRes = await fetch(`${baseUrl}/api/products/${params.slug}`);
+  if (!productRes.ok) return { notFound: true };
+  const product = await productRes.json();
+
+  const relatedRes = await fetch(
+    `${baseUrl}/api/products/related?category=${product.category}&subcategory=${product.subcategory}&exclude=${product.id}`
+  );
+  const relatedProducts = await relatedRes.json();
+
+  return {
+    props: {
+      product,
+      relatedProducts: relatedProducts.slice(0, 20),
+    },
+    revalidate: 60,
+  };
+}
+
+export default function ProductDetailPage({ product, relatedProducts }) {
   const router = useRouter();
-  const { slug } = router.query;
-  const categories = useCategories(); // ✅ context'ten al
-
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-
+  const categories = useCategories();
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
   const [added, setAdded] = useState(false);
-
-  useEffect(() => {
-    if (!slug) return;
-
-    async function fetchProduct() {
-      const res = await fetch("/api/products");
-      const data = await res.json();
-      const found = data.find(
-        (p) => p.slug === slug && p.status === "aktif"
-      );
-
-      if (found) setProduct(found);
-      setLoading(false);
-    }
-
-    fetchProduct();
-  }, [slug]);
-
-  if (loading) return <p>Yükleniyor...</p>;
-
-  if (!product) {
-    return (
-      <section className={styles.container}>
-        <h1>Ürün bulunamadı ❌</h1>
-        <p>Aradığınız ürün mevcut değil veya kaldırılmış olabilir.</p>
-      </section>
-    );
-  }
+  const [activeTab, setActiveTab] = useState("info");
 
   const favorited = isFavorite(product.id);
+  const categoryName =
+    categories.find((cat) => cat.id === product.category)?.name || "";
+  const subcategoryName =
+    categories
+      .find((cat) => cat.id === product.category)
+      ?.subcategories.find((sub) => sub.id === product.subcategory)?.name || "";
 
   const handleAddToCart = () => {
     addToCart(product);
@@ -65,88 +65,97 @@ export default function ProductDetailPage() {
     toggleFavorite(product);
   };
 
-  const categoryName =
-    categories.find((cat) => cat.id === product.category)?.name || "";
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    image: product.image,
+    description: product.description,
+    sku: product.slug,
+    brand: { "@type": "Organization", name: "Lale Kuruyemiş" },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "TRY",
+      price: product.price,
+      itemCondition: "https://schema.org/NewCondition",
+      availability: "https://schema.org/InStock",
+      url: `https://www.lalekuruyemis.com/products-detail/${product.slug}`,
+    },
+  };
 
-  const subcategoryName =
-    categories
-      .find((cat) => cat.id === product.category)
-      ?.subcategories.find((sub) => sub.id === product.subcategory)?.name || "";
+  const breadcrumbData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: categoryName,
+        item: `https://www.lalekuruyemis.com/products/${product.category}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: subcategoryName,
+        item: `https://www.lalekuruyemis.com/products/${product.category}/${product.subcategory}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.name,
+        item: `https://www.lalekuruyemis.com/products-detail/${product.slug}`,
+      },
+    ],
+  };
 
   return (
     <>
       <Head>
-        <title>{product.name} – Lale Kuruyemiş</title>
+        <title>{`${product.name} – Lale Kuruyemiş`}</title>
         <meta name="description" content={product.description} />
+        <meta property="og:title" content={product.name} />
+        <meta property="og:description" content={product.description} />
+        <meta property="og:image" content={product.image} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={product.name} />
+        <meta name="twitter:description" content={product.description} />
+        <meta
+          name="keywords"
+          content={`lale kuruyemiş, ${product.name}, ${categoryName}, ${subcategoryName}`}
+        />
+        <link
+          rel="canonical"
+          href={`https://www.lalekuruyemis.com/products-detail/${product.slug}`}
+        />
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbData)}
+        </script>
       </Head>
 
       <section className={styles.container}>
-        <div className={styles.imageWrapper}>
-          <Image
-            src={product.image}
-            alt={product.name}
-            width={600}
-            height={400}
-            className={styles.image}
-            priority
-          />
-        </div>
-
-        <div className={styles.infoCard}>
-          <h1>{product.name}</h1>
-
-          {categoryName && subcategoryName && (
-            <p className={styles.breadcrumb}>
-              <span
-                className={styles.breadcrumb}
-                onClick={() => router.push(`/products/${product.category}`)}
-              >
-                {categoryName}
-              </span>{" "}
-              &gt;{" "}
-              <span
-                className={styles.breadcrumb}
-                onClick={() =>
-                  router.push(
-                    `/products/${product.category}/${product.subcategory}`
-                  )
-                }
-              >
-                {subcategoryName}
-              </span>
-            </p>
-          )}
-
-          <p className={styles.description}>{product.description}</p>
-          <p className={styles.price}>{product.price}₺</p>
-
-          <div className={styles.actions}>
-            <button onClick={handleAddToCart} className={styles.cartButton}>
-              {added ? (
-                <>
-                  Sepete Eklendi <AiOutlineCheck className={styles.checkIcon} />
-                </>
-              ) : (
-                <>
-                  Sepete Ekle <AiOutlinePlus className={styles.addIcon} />
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={handleToggleFavorite}
-              className={styles.favButton}
-              aria-label="Favorilere ekle veya çıkar"
-            >
-              {favorited ? (
-                <AiFillHeart className={styles.filledHeart} />
-              ) : (
-                <AiOutlineHeart className={styles.heartIcon} />
-              )}
-            </button>
-          </div>
-        </div>
+        <ProductImage product={product} />
+        <ProductInfoCard
+          product={product}
+          categoryName={categoryName}
+          subcategoryName={subcategoryName}
+          router={router}
+          handleAddToCart={handleAddToCart}
+          handleToggleFavorite={handleToggleFavorite}
+          added={added}
+          favorited={favorited}
+        />
       </section>
+
+      <ProductTabs
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        product={product}
+      />
+
+      <RelatedProductsSlider products={relatedProducts} />
     </>
   );
 }

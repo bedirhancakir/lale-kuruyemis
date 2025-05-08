@@ -39,7 +39,10 @@ export default function HeroBannerSlider({ banners }) {
   };
 
   return (
-    <section className={styles.sliderWrapper}>
+    <section
+      className={styles.sliderWrapper}
+      aria-label="Anasayfa Tanıtım Bannerları"
+    >
       <Slider {...settings}>
         {banners.map((banner) => (
           <div
@@ -49,12 +52,16 @@ export default function HeroBannerSlider({ banners }) {
           >
             <Image
               src={`/hero-banners/${banner.filename}`}
-              alt={banner.title || "Banner"}
-              width={1920}
-              height={600}
+              alt={banner.title || "Lale Kuruyemiş Banner"}
+              fill
+              sizes="100vw"
               className={styles.image}
               priority
             />
+
+            {banner.title && (
+              <h2 className={styles.bannerTitle}>{banner.title}</h2>
+            )}
           </div>
         ))}
       </Slider>

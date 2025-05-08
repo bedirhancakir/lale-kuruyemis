@@ -1,0 +1,72 @@
+.wrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.card {
+  position: relative;
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #f4f4f4;
+  aspect-ratio: 1 / 1;
+}
+
+.card:hover .title {
+  opacity: 1;
+}
+
+.image {
+  object-fit: cover;
+  z-index: 0;
+}
+
+.title {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  color: white;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  opacity: 0.9;
+  z-index: 1;
+}
+
+/* boyutlar */
+/* small: 150x150 */
+.small {
+  grid-column: span 1;
+  aspect-ratio: 1 / 1;
+}
+
+/* medium: 200x150 */
+.medium {
+  grid-column: span 1;
+  aspect-ratio: 1.33 / 1; /* 200/150 = 1.33 */
+}
+
+/* large: 300x150 */
+.large {
+  grid-column: span 2;
+  aspect-ratio: 2 / 1;
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .wrapper {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    grid-template-columns: 1fr;
+  }
+}

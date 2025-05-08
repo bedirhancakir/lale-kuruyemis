@@ -4,9 +4,10 @@ import Footer from "../components/Footer";
 import AdminNavbar from "../components/admin-panel/AdminNavbar";
 import { CartProvider } from "../context/CartContext";
 import { FavoritesProvider } from "../context/FavoritesContext";
-import { CategoryProvider } from "../context/CategoryContext"; // ✅
-
+import { CategoryProvider } from "../context/CategoryContext";
 import { useRouter } from "next/router";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function MyApp({ Component, pageProps }) {
   return (
     <CartProvider>
       <FavoritesProvider>
-        <CategoryProvider>
+        <CategoryProvider initialCategories={pageProps.initialCategories || []}>
           {isAdminPage ? <AdminNavbar /> : <Header />}
           <main>
             <Component {...pageProps} />

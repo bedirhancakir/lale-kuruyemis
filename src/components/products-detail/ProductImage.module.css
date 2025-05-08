@@ -1,0 +1,32 @@
+/* ✅ styles/ProductImage.module.css */
+.imageWrapper {
+  flex: 1 1 50%;
+  position: relative;
+}
+
+.image {
+  border-radius: 12px;
+  object-fit: cover;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.badgeContainer {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 2;
+}
+
+.badge {
+  background-color: #e74c3c;
+  color: white;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}

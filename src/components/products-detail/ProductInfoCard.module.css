@@ -1,0 +1,93 @@
+/* ✅ styles/ProductInfoCard.module.css */
+.infoCard {
+  flex: 1 1 40%;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.infoCard h1 {
+  margin-bottom: 0.8rem;
+  font-size: 1.6rem;
+}
+
+.breadcrumb {
+  font-size: 0.95rem;
+  color: #777;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb:hover {
+  color: #000;
+}
+
+.description {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #444;
+}
+
+.price {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #222;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cartButton {
+  background-color: #009578;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background-color 0.2s ease;
+}
+
+.cartButton:hover {
+  background-color: #007c63;
+}
+
+.addIcon {
+  font-size: 1.1rem;
+  color: white;
+}
+
+.checkIcon {
+  font-size: 1.1rem;
+  color: #2ecc71;
+}
+
+.favButton {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.heartIcon {
+  color: #aaa;
+}
+
+.filledHeart {
+  color: #e74c3c;
+}
+
+.favButton:hover {
+  transform: scale(1.1);
+}

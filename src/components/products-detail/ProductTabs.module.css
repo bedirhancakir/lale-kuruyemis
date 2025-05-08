@@ -1,0 +1,36 @@
+/* ✅ styles/ProductTabs.module.css */
+.tabs {
+  width: 100%;
+  max-width: 1000px;
+  margin: 2rem auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.tabHeaders {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabHeaders button {
+  background: none;
+  border: none;
+  padding: 0.6rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.activeTab {
+  border-bottom: 2px solid #009578;
+  color: #009578;
+}
+
+.tabContent {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #444;
+}

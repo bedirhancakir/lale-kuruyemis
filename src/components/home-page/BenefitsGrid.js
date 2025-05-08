@@ -2,10 +2,26 @@ import Image from "next/image";
 import styles from "./BenefitsGrid.module.css";
 
 const benefits = [
-  { src: "/benefits/free-shipping.jpg", alt: "Ücretsiz Kargo", text: "Ücretsiz Kargo" },
-  { src: "/benefits/fresh.jpg", alt: "Her Zaman Taze", text: "Her Zaman Taze" },
-  { src: "/benefits/secure.jpg", alt: "Güvenli Alışveriş", text: "Güvenli Alışveriş" },
-  { src: "/benefits/fast.jpg", alt: "Hızlı Teslimat", text: "Hızlı Teslimat" },
+  {
+    src: "/benefits-images/placeholder.jpg",
+    alt: "Ücretsiz Kargo",
+    text: "Ücretsiz Kargo",
+  },
+  {
+    src: "/benefits-images/placeholder.jpg",
+    alt: "Her Zaman Taze",
+    text: "Her Zaman Taze",
+  },
+  {
+    src: "/benefits-images/placeholder.jpg",
+    alt: "Güvenli Alışveriş",
+    text: "Güvenli Alışveriş",
+  },
+  {
+    src: "/benefits-images/placeholder.jpg",
+    alt: "Hızlı Teslimat",
+    text: "Hızlı Teslimat",
+  },
 ];
 
 export default function BenefitsGrid() {
