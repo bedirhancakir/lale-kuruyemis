@@ -2,6 +2,7 @@ import Link from "next/link";
 import styles from "../../styles/AdminOrders.module.css";
 import fs from "fs/promises";
 import path from "path";
+import { FaBoxOpen, FaShippingFast, FaCheckCircle } from "react-icons/fa";
 
 export async function getServerSideProps() {
   const filePath = path.join(process.cwd(), "data", "orders.json");
@@ -18,10 +19,14 @@ export async function getServerSideProps() {
 
 export default function AdminOrdersPage({ orders }) {
   const statusList = ["Hazırlanıyor", "Kargoya Verildi", "Teslim Edildi"];
+  const icons = {
+    Hazırlanıyor: <FaBoxOpen />,
+    "Kargoya Verildi": <FaShippingFast />,
+    "Teslim Edildi": <FaCheckCircle />,
+  };
 
-  function countOrders(status) {
-    return orders.filter((order) => order.status === status).length;
-  }
+  const countOrders = (status) =>
+    orders.filter((order) => order.status === status).length;
 
   return (
     <div className={styles.container}>
@@ -39,7 +44,7 @@ export default function AdminOrdersPage({ orders }) {
                   styles[status.replace(/\s/g, "")]
                 }`}
               >
-                {countOrders(status)}
+                {icons[status]} {countOrders(status)}
               </div>
             ))}
           </div>
@@ -75,7 +80,7 @@ export default function AdminOrdersPage({ orders }) {
                       styles[order.status.replace(/\s/g, "")]
                     }`}
                   >
-                    {order.status}
+                    {icons[order.status]} {order.status}
                   </span>
                 </td>
                 <td>

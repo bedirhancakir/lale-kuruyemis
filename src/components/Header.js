@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCart } from "../context/CartContext";
 import { useCategories } from "../context/CategoryContext";
@@ -12,57 +13,50 @@ import {
 export default function Header() {
   const router = useRouter();
   const { cartItems, cartItemCount } = useCart();
-  const categories = useCategories(); // ✅ Context'ten veri al
-
-  const handleNavigation = (url) => {
-    if (router.asPath !== url) {
-      router.push(url);
-    }
-  };
+  const categories = useCategories();
 
   return (
     <header className={styles.header}>
       <div className={styles.left}>
-        <span className={styles.logoLink} onClick={() => handleNavigation("/")}>
+        <Link href="/" className={styles.logoLink} aria-label="Anasayfaya git">
           <Image
             src="/images/placeholder.jpg"
-            alt="Logo"
+            alt="Lale Kuruyemiş Logo"
             width={60}
             height={40}
             className={styles.logo}
+            priority
           />
-        </span>
+        </Link>
 
-        <nav className={styles.nav}>
+        <nav className={styles.nav} aria-label="Ana Kategoriler">
           {categories.map((category) => (
             <div key={category.id} className={styles.navItem}>
-              <span
+              <Link
+                href={`/products/${category.id}`}
                 className={styles.navLink}
-                onClick={() => handleNavigation(`/products/${category.id}`)}
               >
                 {category.name}
-              </span>
+              </Link>
 
               {category.subcategories.length > 0 && (
-                <ul className={styles.dropdown}>
+                <ul className={styles.dropdown} role="menu">
                   <li key="tumu">
-                    <span
+                    <Link
+                      href={`/products/${category.id}`}
                       className={styles.dropdownLink}
-                      onClick={() => handleNavigation(`/products/${category.id}`)}
                     >
                       Tümü
-                    </span>
+                    </Link>
                   </li>
                   {category.subcategories.map((sub) => (
-                    <li key={sub.id}>
-                      <span
+                    <li key={sub.id} role="none">
+                      <Link
+                        href={`/products/${category.id}/${sub.id}`}
                         className={styles.dropdownLink}
-                        onClick={() =>
-                          handleNavigation(`/products/${category.id}/${sub.id}`)
-                        }
                       >
                         {sub.name}
-                      </span>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -73,29 +67,24 @@ export default function Header() {
       </div>
 
       <div className={styles.right}>
-        <span
+        <Link
+          href="/favorites"
           className={styles.iconBtn}
-          onClick={() => handleNavigation("/favorites")}
+          aria-label="Favoriler"
         >
           <AiFillHeart />
-        </span>
+        </Link>
 
-        <span
-          className={styles.iconBtn}
-          onClick={() => handleNavigation("/cart")}
-        >
+        <Link href="/cart" className={styles.iconBtn} aria-label="Sepet">
           <AiOutlineShoppingCart />
           {cartItems.length > 0 && (
             <span className={styles.cartCount}>{cartItemCount()}</span>
           )}
-        </span>
+        </Link>
 
-        <span
-          className={styles.iconBtn}
-          onClick={() => handleNavigation("/")}
-        >
+        <Link href="/" className={styles.iconBtn} aria-label="Hesabım">
           <AiOutlineUser />
-        </span>
+        </Link>
       </div>
     </header>
   );

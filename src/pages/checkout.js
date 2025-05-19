@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useState } from "react";
 import CheckoutSteps from "../components/checkout-forms/CheckoutSteps";
 import Step1_DeliveryForm from "../components/checkout-forms/DeliveryForm";
@@ -9,6 +10,7 @@ import styles from "../styles/CheckoutPage.module.css";
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1);
+  const { cartItems, clearCart } = useCart();
 
   const [deliveryInfo, setDeliveryInfo] = useState({
     email: "",
@@ -26,7 +28,7 @@ export default function CheckoutPage() {
     cardNumber: "",
     cardName: "",
     expiry: "",
-    cvv: ""
+    cvv: "",
   });
 
   const [deliveryErrors, setDeliveryErrors] = useState({});
@@ -35,15 +37,13 @@ export default function CheckoutPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isAgreementChecked, setIsAgreementChecked] = useState(false);
   const [showAgreementError, setShowAgreementError] = useState(false);
-  const [orderId, setOrderId] = useState(null); // 🎯 Yeni: orderId state
-
-  const { cartItems, clearCart } = useCart();
+  const [orderId, setOrderId] = useState(null);
 
   const validateDelivery = () => {
     const newErrors = {};
     let isValid = true;
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!deliveryInfo.email || !emailRegex.test(deliveryInfo.email)) {
       newErrors.email = "Geçerli bir e-posta giriniz";
       isValid = false;
@@ -76,12 +76,18 @@ export default function CheckoutPage() {
   const validatePayment = () => {
     const newErrors = {};
     const rawCard = paymentInfo.cardNumber?.replace(/\s/g, "");
-    if (!rawCard || rawCard.length !== 16) newErrors.cardNumber = "Kart numarası geçersiz";
+
+    if (!rawCard || rawCard.length !== 16)
+      newErrors.cardNumber = "Kart numarası geçersiz";
 
     if (!paymentInfo.cardName || paymentInfo.cardName.trim().length < 2)
       newErrors.cardName = "Kart sahibi adı gerekli";
 
-    if (!paymentInfo.expiry || paymentInfo.expiry.length !== 5 || !paymentInfo.expiry.includes("/")) {
+    if (
+      !paymentInfo.expiry ||
+      paymentInfo.expiry.length !== 5 ||
+      !paymentInfo.expiry.includes("/")
+    ) {
       newErrors.expiry = "Geçersiz Tarih";
     } else {
       const [monthStr, yearStr] = paymentInfo.expiry.split("/");
@@ -90,12 +96,22 @@ export default function CheckoutPage() {
       const today = new Date();
       const expDate = new Date(year, month - 1);
 
-      if (isNaN(month) || isNaN(year) || month < 1 || month > 12 || expDate < new Date(today.getFullYear(), today.getMonth())) {
+      if (
+        isNaN(month) ||
+        isNaN(year) ||
+        month < 1 ||
+        month > 12 ||
+        expDate < today
+      ) {
         newErrors.expiry = "Geçersiz tarih";
       }
     }
 
-    if (!paymentInfo.cvv || paymentInfo.cvv.length < 3 || paymentInfo.cvv.length > 4)
+    if (
+      !paymentInfo.cvv ||
+      paymentInfo.cvv.length < 3 ||
+      paymentInfo.cvv.length > 4
+    )
       newErrors.cvv = "Geçersiz CVV";
 
     setPaymentErrors(newErrors);
@@ -116,7 +132,10 @@ export default function CheckoutPage() {
 
       if (!validatePayment()) return;
 
-      const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const total = cartItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
 
       try {
         const res = await fetch("/api/orders", {
@@ -147,7 +166,25 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className={styles.checkoutContainer}>
+    <>
+      <Head>
+        <title>Checkout – Lale Kuruyemiş</title>
+        <meta
+          name="description"
+          content="Teslimat ve ödeme bilgilerinizi girerek siparişinizi tamamlayın."
+        />
+        <link rel="canonical" href="https://www.lalekuruyemis.com/checkout" />
+        <meta property="og:title" content="Checkout – Lale Kuruyemiş" />
+        <meta
+          property="og:description"
+          content="Hızlı ve güvenli ödeme ile siparişinizi tamamlayın."
+        />
+        <meta
+          property="og:url"
+          content="https://www.lalekuruyemis.com/checkout"
+        />
+      </Head>
+
       {step !== 3 && (
         <CheckoutSteps
           currentStep={step}
@@ -156,42 +193,44 @@ export default function CheckoutPage() {
         />
       )}
 
-      <div className={styles.checkoutWrapper}>
-        <div className={styles.checkoutLeft}>
-          {step === 1 && (
-            <Step1_DeliveryForm
-              formData={deliveryInfo}
-              setFormData={setDeliveryInfo}
-              errors={deliveryErrors}
-              setErrors={setDeliveryErrors}
-              showToast={showToast}
-            />
-          )}
-          {step === 2 && (
-            <Step2_PaymentForm
-              formData={paymentInfo}
-              setFormData={setPaymentInfo}
-              errors={paymentErrors}
-              setErrors={setPaymentErrors}
-            />
-          )}
-          {step === 3 && <Step3_Success orderId={orderId} />} {/* 🎯 orderId gönderildi */}
-        </div>
-
-        {step !== 3 && (
-          <div className={styles.checkoutRight}>
-            <OrderSummary
-              step={step}
-              onClick={handleMainButtonClick}
-              submitted={submitted}
-              isAgreementChecked={isAgreementChecked}
-              setIsAgreementChecked={setIsAgreementChecked}
-              showAgreementError={showAgreementError}
-              setShowAgreementError={setShowAgreementError}
-            />
+      <div className={styles.checkoutContainer}>
+        <div className={styles.checkoutWrapper}>
+          <div className={styles.checkoutLeft}>
+            {step === 1 && (
+              <Step1_DeliveryForm
+                formData={deliveryInfo}
+                setFormData={setDeliveryInfo}
+                errors={deliveryErrors}
+                setErrors={setDeliveryErrors}
+                showToast={showToast}
+              />
+            )}
+            {step === 2 && (
+              <Step2_PaymentForm
+                formData={paymentInfo}
+                setFormData={setPaymentInfo}
+                errors={paymentErrors}
+                setErrors={setPaymentErrors}
+              />
+            )}
+            {step === 3 && <Step3_Success orderId={orderId} />}
           </div>
-        )}
+
+          {step !== 3 && (
+            <div className={styles.checkoutRight}>
+              <OrderSummary
+                step={step}
+                onClick={handleMainButtonClick}
+                submitted={submitted}
+                isAgreementChecked={isAgreementChecked}
+                setIsAgreementChecked={setIsAgreementChecked}
+                showAgreementError={showAgreementError}
+                setShowAgreementError={setShowAgreementError}
+              />
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

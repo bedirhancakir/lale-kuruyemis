@@ -9,11 +9,18 @@
 
 .card {
   position: relative;
-  cursor: pointer;
+  display: block; /* <a> etiketi olduğu için gerekli */
+  text-decoration: none;
   border-radius: 12px;
   overflow: hidden;
   background-color: #f4f4f4;
   aspect-ratio: 1 / 1;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: scale(1.01);
 }
 
 .card:hover .title {
@@ -39,26 +46,23 @@
   z-index: 1;
 }
 
-/* boyutlar */
-/* small: 150x150 */
+/* Boyutlar */
 .small {
   grid-column: span 1;
   aspect-ratio: 1 / 1;
 }
 
-/* medium: 200x150 */
 .medium {
   grid-column: span 1;
-  aspect-ratio: 1.33 / 1; /* 200/150 = 1.33 */
+  aspect-ratio: 1.33 / 1;
 }
 
-/* large: 300x150 */
 .large {
   grid-column: span 2;
   aspect-ratio: 2 / 1;
 }
 
-/* responsive */
+/* Responsive */
 @media (max-width: 768px) {
   .wrapper {
     grid-template-columns: repeat(2, 1fr);

@@ -4,25 +4,31 @@ import Slider from "react-slick";
 import { useRouter } from "next/router";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 
-function PrevArrow(props) {
-  const { onClick } = props;
+function PrevArrow({ onClick }) {
   return (
-    <button className={styles.arrow + " " + styles.prev} onClick={onClick}>
+    <button
+      className={`${styles.arrow} ${styles.prev}`}
+      onClick={onClick}
+      aria-label="Önceki banner"
+    >
       <IoChevronBack />
     </button>
   );
 }
 
-function NextArrow(props) {
-  const { onClick } = props;
+function NextArrow({ onClick }) {
   return (
-    <button className={styles.arrow + " " + styles.next} onClick={onClick}>
+    <button
+      className={`${styles.arrow} ${styles.next}`}
+      onClick={onClick}
+      aria-label="Sonraki banner"
+    >
       <IoChevronForward />
     </button>
   );
 }
 
-export default function HeroBannerSlider({ banners }) {
+export default function HeroBannerSlider({ banners = [] }) {
   const router = useRouter();
 
   const settings = {
@@ -39,16 +45,18 @@ export default function HeroBannerSlider({ banners }) {
   };
 
   return (
-    <section
-      className={styles.sliderWrapper}
-      aria-label="Anasayfa Tanıtım Bannerları"
-    >
+    <section className={styles.sliderWrapper} aria-label="Tanıtım Bannerları">
       <Slider {...settings}>
         {banners.map((banner) => (
           <div
             key={banner.id}
             className={styles.slide}
             onClick={() => banner.link && router.push(banner.link)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) =>
+              e.key === "Enter" && banner.link && router.push(banner.link)
+            }
           >
             <Image
               src={`/hero-banners/${banner.filename}`}
@@ -58,10 +66,6 @@ export default function HeroBannerSlider({ banners }) {
               className={styles.image}
               priority
             />
-
-            {banner.title && (
-              <h2 className={styles.bannerTitle}>{banner.title}</h2>
-            )}
           </div>
         ))}
       </Slider>

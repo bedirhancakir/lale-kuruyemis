@@ -1,4 +1,3 @@
-// Step2_PaymentForm.js
 import styles from "../../styles/CheckoutPage.module.css";
 import CreditCardPreview from "./CreditCardPreview";
 
@@ -24,10 +23,9 @@ export default function PaymentForm({
 
   const formatExpiry = (val) => {
     let clean = val.replace(/\D/g, "").slice(0, 4);
-    if (clean.length >= 3) {
-      return clean.replace(/(\d{2})(\d{1,2})/, "$1/$2");
-    }
-    return clean;
+    return clean.length >= 3
+      ? clean.replace(/(\d{2})(\d{1,2})/, "$1/$2")
+      : clean;
   };
 
   return (
@@ -46,6 +44,8 @@ export default function PaymentForm({
             type="text"
             name="cardNumber"
             placeholder="1234 5678 9012 3456"
+            maxLength={19}
+            autoComplete="off"
             className={`${styles.checkoutInput} ${
               errors.cardNumber ? styles.errorInput : ""
             }`}
@@ -53,11 +53,9 @@ export default function PaymentForm({
             onChange={(e) => {
               const formatted = formatCardNumber(e.target.value);
               setFormData((prev) => ({ ...prev, cardNumber: formatted }));
-              if (errors.cardNumber) {
+              if (errors.cardNumber)
                 setErrors((prev) => ({ ...prev, cardNumber: "" }));
-              }
             }}
-            maxLength={19}
           />
           {errors.cardNumber && (
             <div className={styles.errorText}>{errors.cardNumber}</div>
@@ -75,6 +73,7 @@ export default function PaymentForm({
             type="text"
             name="cardName"
             placeholder="Ad Soyad"
+            autoComplete="off"
             className={`${styles.checkoutInput} ${
               errors.cardName ? styles.errorInput : ""
             }`}
@@ -106,12 +105,10 @@ export default function PaymentForm({
               onChange={(e) => {
                 const formatted = formatExpiry(e.target.value);
                 setFormData((prev) => ({ ...prev, expiry: formatted }));
-                if (errors.expiry) {
+                if (errors.expiry)
                   setErrors((prev) => ({ ...prev, expiry: "" }));
-                }
               }}
             />
-
             {errors.expiry && (
               <div className={styles.errorText}>{errors.expiry}</div>
             )}
@@ -129,6 +126,7 @@ export default function PaymentForm({
               name="cvv"
               placeholder="CVV"
               maxLength={4}
+              autoComplete="off"
               className={`${styles.checkoutInput} ${
                 errors.cvv ? styles.errorInput : ""
               }`}
@@ -136,9 +134,7 @@ export default function PaymentForm({
               onChange={(e) => {
                 const val = e.target.value.replace(/\D/g, "").slice(0, 4);
                 setFormData((prev) => ({ ...prev, cvv: val }));
-                if (errors.cvv) {
-                  setErrors((prev) => ({ ...prev, cvv: "" }));
-                }
+                if (errors.cvv) setErrors((prev) => ({ ...prev, cvv: "" }));
               }}
             />
             {errors.cvv && <div className={styles.errorText}>{errors.cvv}</div>}

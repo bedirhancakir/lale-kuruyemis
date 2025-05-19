@@ -1,13 +1,12 @@
-// components/Checkout/Step3_Success.js
 import Link from "next/link";
 import { FaCheckCircle } from "react-icons/fa";
 import styles from "../../styles/CheckoutPage.module.css";
 
 export default function SuccessPayment({ orderId }) {
   return (
-    <div className={styles.successContainer}>
+    <div className={styles.successContainer} role="alert" aria-live="polite">
       <div className={styles.successIcon}>
-        <FaCheckCircle size={80} color="#4BB543" />
+        <FaCheckCircle size={80} color="#4BB543" aria-hidden="true" />
       </div>
 
       <h2 className={styles.successTitle}>Teşekkürler!</h2>
@@ -19,8 +18,13 @@ export default function SuccessPayment({ orderId }) {
         </p>
       )}
 
-      <Link href="/">
-        <button className={styles.successButton}>Alışverişe Devam Et</button>
+      <Link href="/" passHref>
+        <button
+          className={styles.successButton}
+          aria-label="Alışverişe Devam Et"
+        >
+          Alışverişe Devam Et
+        </button>
       </Link>
     </div>
   );

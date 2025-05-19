@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "../../styles/AdminBanners.module.css";
-import { FiTrash2, FiPlus, FiChevronUp, FiChevronDown } from "react-icons/fi";
+import { FaTrash, FaPlus, FaChevronUp, FaChevronDown } from "react-icons/fa";
 import ConfirmPopup from "../../components/admin-panel/ConfirmPopup";
 import BannerModal from "../../components/admin-panel/BannerModal";
 import Image from "next/image";
@@ -15,9 +15,14 @@ export default function BannersManagementPage() {
   }, []);
 
   const fetchBanners = async () => {
-    const res = await fetch("/api/public/banners");
-    const data = await res.json();
-    setBanners(data);
+    try {
+      const res = await fetch("/api/public/banners");
+      const data = await res.json();
+      setBanners(data);
+      console.log("Banner listesi yüklendi:", data);
+    } catch (error) {
+      console.error("Bannerlar yüklenemedi:", error.message);
+    }
   };
 
   const openModal = () => setModalOpen(true);
@@ -27,15 +32,22 @@ export default function BannersManagementPage() {
       title: "Banner Sil",
       message: "Bu banner'ı silmek istediğinize emin misiniz?",
       onConfirm: async () => {
-        const res = await fetch("/api/admin/banners", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id }),
-        });
+        try {
+          const res = await fetch("/api/admin/banners", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id }),
+          });
 
-        if (res.ok) {
-          const { banners: updated } = await res.json();
-          setBanners(updated);
+          if (res.ok) {
+            const { banners: updated } = await res.json();
+            setBanners(updated);
+            console.log("✅ Banner silindi:", id);
+          } else {
+            console.error("Banner silinemedi.");
+          }
+        } catch (error) {
+          console.error("Banner silinirken hata oluştu:", error.message);
         }
 
         setConfirmPopup(null);
@@ -58,14 +70,24 @@ export default function BannersManagementPage() {
   };
 
   async function saveOrder(updatedList) {
-    const res = await fetch("/api/admin/banners", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        updatedList.map((b, i) => ({ ...b, order: i + 1 }))
-      ),
-    });
-    if (res.ok) fetchBanners();
+    try {
+      const res = await fetch("/api/admin/banners", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          updatedList.map((b, i) => ({ ...b, order: i + 1 }))
+        ),
+      });
+
+      if (res.ok) {
+        console.log("Banner sıralaması güncellendi.");
+        fetchBanners();
+      } else {
+        console.error("Banner sıralaması güncellenemedi.");
+      }
+    } catch (error) {
+      console.error("Sıralama güncellenemedi:", error.message);
+    }
   }
 
   return (
@@ -73,7 +95,7 @@ export default function BannersManagementPage() {
       <div className={styles.headerRow}>
         <h1>Hero Banner Yönetimi</h1>
         <button onClick={openModal} className={styles.createBtn}>
-          <FiPlus /> Banner Ekle
+          <FaPlus /> Banner Ekle
         </button>
       </div>
 
@@ -89,10 +111,16 @@ export default function BannersManagementPage() {
             />
             <p>{banner.title}</p>
             <div className={styles.buttons}>
-              <button onClick={() => moveUp(i)}><FiChevronUp /></button>
+              <button onClick={() => moveUp(i)}>
+                <FaChevronUp />
+              </button>
               <span className={styles.order}>{i + 1}</span>
-              <button onClick={() => moveDown(i)}><FiChevronDown /></button>
-              <button onClick={() => deleteBanner(banner.id)}><FiTrash2 /></button>
+              <button onClick={() => moveDown(i)}>
+                <FaChevronDown />
+              </button>
+              <button onClick={() => deleteBanner(banner.id)}>
+                <FaTrash />
+              </button>
             </div>
           </div>
         ))}

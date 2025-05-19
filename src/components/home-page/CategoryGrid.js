@@ -1,9 +1,8 @@
 import Image from "next/image";
-import { useRouter } from "next/router";
+import Link from "next/link";
 import styles from "./CategoryGrid.module.css";
 
 const categoryData = [
-  // 1. sıra: 4 küçük kutu
   {
     id: 1,
     title: "Kuruyemiş",
@@ -32,8 +31,6 @@ const categoryData = [
     size: "small",
     image: "placeholder.jpg",
   },
-
-  // 2. sıra: 2 orta kutu
   {
     id: 5,
     title: "Şekerleme",
@@ -48,8 +45,6 @@ const categoryData = [
     size: "large",
     image: "placeholder.jpg",
   },
-
-  // 3. sıra: 3 kutu
   {
     id: 7,
     title: "Yeni Ürünler",
@@ -74,19 +69,14 @@ const categoryData = [
 ];
 
 export default function CategoryGrid() {
-  const router = useRouter();
-
-  const handleClick = (slug) => {
-    router.push(`/products/${slug}`);
-  };
-
   return (
-    <section className={styles.wrapper}>
+    <section className={styles.wrapper} aria-label="Kategori Görselleri">
       {categoryData.map((item) => (
-        <div
+        <Link
           key={item.id}
+          href={`/products/${item.slug}`}
           className={`${styles.card} ${styles[item.size]}`}
-          onClick={() => handleClick(item.slug)}
+          aria-label={`${item.title} kategorisine git`}
         >
           <Image
             src={`/category-grid-images/${item.image}`}
@@ -94,10 +84,11 @@ export default function CategoryGrid() {
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className={styles.image}
+            placeholder="blur"
+            blurDataURL="/images/placeholder.jpg"
           />
-
           <span className={styles.title}>{item.title}</span>
-        </div>
+        </Link>
       ))}
     </section>
   );

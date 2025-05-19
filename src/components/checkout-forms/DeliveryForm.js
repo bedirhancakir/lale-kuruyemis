@@ -9,7 +9,6 @@ export default function DeliveryForm({
 }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (errors[name]) {
@@ -31,7 +30,6 @@ export default function DeliveryForm({
     <form className={styles.deliveryForm}>
       <h2 className={styles.stepTitle}>1. Adım: Teslimat Bilgileri</h2>
 
-      {/* 📧 E-posta alanı (ayrı gösterilir) */}
       <div className={styles.formGroup}>
         <label
           htmlFor="email"
@@ -48,11 +46,11 @@ export default function DeliveryForm({
           className={`${styles.checkoutInput} ${
             errors.email ? styles.errorInput : ""
           }`}
+          autoComplete="email"
         />
         {errors.email && <div className={styles.errorText}>{errors.email}</div>}
       </div>
 
-      {/* 🔁 Diğer alanlar */}
       {fields.map(({ name, label, type, placeholder }) => (
         <div key={name} className={styles.formGroup}>
           <label
@@ -108,6 +106,7 @@ export default function DeliveryForm({
               className={`${styles.checkoutInput} ${
                 errors[name] ? styles.errorInput : ""
               }`}
+              autoComplete="off"
             />
           )}
 
@@ -117,7 +116,6 @@ export default function DeliveryForm({
         </div>
       ))}
 
-      {/* 📝 Sipariş Notu */}
       <div className={styles.formGroup}>
         <label htmlFor="note">Sipariş Notu</label>
         <textarea

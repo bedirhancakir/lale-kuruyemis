@@ -21,7 +21,7 @@ export default function RelatedProductsSlider({ products = [] }) {
   if (!products.length) return null;
 
   return (
-    <div className={styles.wrapper}>
+    <section className={styles.wrapper} aria-label="Benzer Ürünler">
       <h3>Benzer Diğer Ürünler</h3>
       <Slider {...sliderSettings}>
         {products.map((item) => (
@@ -29,19 +29,27 @@ export default function RelatedProductsSlider({ products = [] }) {
             key={item.id}
             className={styles.card}
             onClick={() => router.push(`/products-detail/${item.slug}`)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) =>
+              e.key === "Enter" && router.push(`/products-detail/${item.slug}`)
+            }
+            aria-label={`${item.name} detay sayfasına git`}
           >
             <Image
               src={item.image}
-              alt={item.name}
+              alt={`${item.name} görseli`}
               width={220}
               height={160}
               className={styles.image}
+              placeholder="blur"
+              blurDataURL="/images/placeholder.jpg"
             />
             <p>{item.name}</p>
             <p className={styles.price}>{item.price}₺</p>
           </div>
         ))}
       </Slider>
-    </div>
+    </section>
   );
 }

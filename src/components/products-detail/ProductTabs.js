@@ -1,8 +1,10 @@
-// ✅ components/products-detail/ProductTabs.js
 import styles from "./ProductTabs.module.css";
 
 export default function ProductTabs({ activeTab, setActiveTab, product }) {
-  const tabs = [{ id: "info", label: "Ürün Bilgisi" }];
+  const tabs = [
+    { id: "info", label: "Ürün Bilgisi" },
+    // Genişletmeye açık yapı
+  ];
 
   return (
     <div className={styles.tabs}>
@@ -14,6 +16,7 @@ export default function ProductTabs({ activeTab, setActiveTab, product }) {
               activeTab === tab.id ? styles.activeTab : ""
             }`}
             onClick={() => setActiveTab(tab.id)}
+            aria-pressed={activeTab === tab.id}
           >
             {tab.label}
           </button>

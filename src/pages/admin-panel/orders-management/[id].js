@@ -4,18 +4,17 @@ import path from "path";
 import Link from "next/link";
 import styles from "../../../styles/orderdetail.module.css";
 
-export async function getServerSideProps(ctx) {
-  const { id } = ctx.params;
+export async function getServerSideProps({ params }) {
   const filePath = path.join(process.cwd(), "data", "orders.json");
 
   try {
     const data = await fs.readFile(filePath, "utf-8");
     const orders = JSON.parse(data);
-    const order = orders.find((o) => o.id === id) || null;
+    const order = orders.find((o) => o.id === params.id) || null;
 
     return { props: { order } };
   } catch (error) {
-    console.error("Sipariş bulunamadı:", error.message);
+    console.error("Sipariş dosyası okunamadı:", error.message);
     return { props: { order: null } };
   }
 }
@@ -24,17 +23,20 @@ export default function AdminOrderDetail({ order }) {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
-    if (order) {
-      setStatus(order.status);
-    }
+    if (order) setStatus(order.status);
   }, [order]);
 
   if (!order) return <p>Sipariş bulunamadı.</p>;
 
-  const cargoFee = order.total >= 150 ? 0 : 25;
-  const rawTotal = order.total - cargoFee;
+  // ✅ Doğru fiyatlar üzerinden ara toplam ve kargo
+  const rawTotal = order.cartItems.reduce(
+    (sum, item) => sum + (item.finalPrice || item.price) * item.quantity,
+    0
+  );
+  const cargoFee = rawTotal >= 150 ? 0 : 25;
+  const total = rawTotal + cargoFee;
 
-  async function handleStatusChange(e) {
+  const handleStatusChange = async (e) => {
     const newStatus = e.target.value;
     setStatus(newStatus);
 
@@ -45,25 +47,25 @@ export default function AdminOrderDetail({ order }) {
         body: JSON.stringify({ id: order.id, status: newStatus }),
       });
 
-      if (!res.ok) throw new Error("Durum güncellenemedi");
-      alert("Sipariş durumu başarıyla güncellendi!");
+      if (!res.ok) throw new Error("Durum güncellenemedi.");
+      alert("Sipariş durumu güncellendi.");
     } catch (error) {
       console.error("Güncelleme hatası:", error.message);
-      alert("Hata oluştu!");
+      alert("Durum güncellenemedi.");
     }
-  }
+  };
 
   return (
     <div className={styles.container}>
       <div className={styles.titleRow}>
-        <h1 className={styles.title}>Sipariş Detayı - {order.id}</h1>
+        <h1 className={styles.title}>Sipariş Detayı – {order.id}</h1>
         <Link href="/admin-panel/orders">
           <button className={styles.backButton}>← Geri Dön</button>
         </Link>
       </div>
 
       <div className={styles.orderDate}>
-        {new Date(order.createdAt).toLocaleDateString()}
+        {new Date(order.createdAt).toLocaleDateString("tr-TR")}
       </div>
 
       <div className={styles.statusBox}>
@@ -97,10 +99,21 @@ export default function AdminOrderDetail({ order }) {
       <div className={styles.section}>
         <h2>Ürünler</h2>
         <ul className={styles.productList}>
-          {order.cartItems.map((item) => (
-            <li key={item.id}>
-              {item.name} × {item.quantity} ={" "}
-              {(item.price * item.quantity).toFixed(2)}₺
+          {order.cartItems.map((item, i) => (
+            <li key={`${item.id}-${item.selectedAmount || i}`}>
+              <strong>{item.name}</strong>
+              {item.displayAmount && (
+                <>
+                  {" "}
+                  – <span>{item.displayAmount}</span>
+                </>
+              )}
+              <br />
+              {item.quantity} adet ×{" "}
+              {(item.finalPrice || item.price).toFixed(2)}₺ ={" "}
+              <strong>
+                {((item.finalPrice || item.price) * item.quantity).toFixed(2)}₺
+              </strong>
             </li>
           ))}
         </ul>
@@ -115,7 +128,7 @@ export default function AdminOrderDetail({ order }) {
           <strong>Kargo:</strong> {cargoFee === 0 ? "Ücretsiz" : `${cargoFee}₺`}
         </p>
         <p>
-          <strong>Toplam:</strong> {order.total.toFixed(2)}₺
+          <strong>Toplam:</strong> {total.toFixed(2)}₺
         </p>
       </div>
     </div>

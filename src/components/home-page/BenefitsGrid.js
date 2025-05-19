@@ -26,7 +26,7 @@ const benefits = [
 
 export default function BenefitsGrid() {
   return (
-    <section className={styles.grid}>
+    <section className={styles.grid} aria-label="Avantajlarımız">
       {benefits.map((item, i) => (
         <div key={i} className={styles.card}>
           <div className={styles.imageWrapper}>
@@ -34,8 +34,10 @@ export default function BenefitsGrid() {
               src={item.src}
               alt={item.alt}
               fill
-              className={styles.image}
               sizes="(max-width: 768px) 100vw, 25vw"
+              className={styles.image}
+              placeholder="blur"
+              blurDataURL="/images/placeholder.jpg"
             />
           </div>
           <p className={styles.text}>{item.text}</p>

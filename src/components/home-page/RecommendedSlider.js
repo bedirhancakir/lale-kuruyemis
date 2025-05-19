@@ -7,7 +7,14 @@ import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai";
 
 function NextArrow({ onClick }) {
   return (
-    <div className={`${styles.arrow} ${styles.next}`} onClick={onClick}>
+    <div
+      className={`${styles.arrow} ${styles.next}`}
+      onClick={onClick}
+      aria-label="Sonraki ürünler"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onClick()}
+    >
       <AiOutlineRight size={24} />
     </div>
   );
@@ -15,13 +22,20 @@ function NextArrow({ onClick }) {
 
 function PrevArrow({ onClick }) {
   return (
-    <div className={`${styles.arrow} ${styles.prev}`} onClick={onClick}>
+    <div
+      className={`${styles.arrow} ${styles.prev}`}
+      onClick={onClick}
+      aria-label="Önceki ürünler"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onClick()}
+    >
       <AiOutlineLeft size={24} />
     </div>
   );
 }
 
-export default function RecommendedSlider({ products }) {
+export default function RecommendedSlider({ products = [] }) {
   if (!Array.isArray(products) || products.length === 0) return null;
 
   const showCount = Math.min(products.length, 4);
@@ -61,7 +75,7 @@ export default function RecommendedSlider({ products }) {
   };
 
   return (
-    <section className={styles.sliderSection}>
+    <section className={styles.sliderSection} aria-label="Önerilen Ürünler">
       <h2>🎯 Önerilen Ürünler</h2>
       <Slider {...settings}>
         {products.map((p) => (

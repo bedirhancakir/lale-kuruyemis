@@ -12,7 +12,8 @@
     "isFeatured": true,
     "isRecommended": true,
     "isBestSeller": false,
-    "isDiscounted": false
+    "isDiscounted": false,
+    "unitType": "unit"
   },
   {
     "id": "P3AQRvsD",
@@ -27,7 +28,8 @@
     "isFeatured": true,
     "isRecommended": true,
     "isBestSeller": false,
-    "isDiscounted": false
+    "isDiscounted": false,
+    "unitType": "weight"
   },
   {
     "id": "ylnriflS",
@@ -42,7 +44,8 @@
     "isFeatured": true,
     "isRecommended": true,
     "isBestSeller": false,
-    "isDiscounted": false
+    "isDiscounted": false,
+    "unitType": "weight"
   },
   {
     "id": "ZGZb-JVS",
@@ -57,7 +60,10 @@
     "isFeatured": true,
     "isRecommended": true,
     "isBestSeller": false,
-    "isDiscounted": false
+    "isDiscounted": false,
+    "unitType": "unit",
+    "enableWeightSelection": false,
+    "enableUnitSelection": true
   },
   {
     "id": "0YzTungZ",
@@ -72,7 +78,10 @@
     "isFeatured": true,
     "isRecommended": true,
     "isBestSeller": false,
-    "isDiscounted": false
+    "isDiscounted": false,
+    "unitType": "unit",
+    "enableWeightSelection": false,
+    "enableUnitSelection": true
   },
   {
     "id": "mMqs7TIB",
@@ -87,7 +96,10 @@
     "isFeatured": true,
     "isRecommended": true,
     "isBestSeller": false,
-    "isDiscounted": false
+    "isDiscounted": false,
+    "unitType": "unit",
+    "enableWeightSelection": false,
+    "enableUnitSelection": true
   },
   {
     "id": "PxodzSfi",
@@ -102,7 +114,10 @@
     "isFeatured": true,
     "isRecommended": true,
     "isBestSeller": false,
-    "isDiscounted": false
+    "isDiscounted": false,
+    "unitType": "unit",
+    "enableWeightSelection": false,
+    "enableUnitSelection": true
   },
   {
     "id": "53vhPK8m",
@@ -117,7 +132,10 @@
     "isFeatured": true,
     "isRecommended": true,
     "isBestSeller": false,
-    "isDiscounted": false
+    "isDiscounted": false,
+    "unitType": "unit",
+    "enableWeightSelection": false,
+    "enableUnitSelection": true
   },
   {
     "id": "KbSZloSs",
@@ -132,6 +150,7 @@
     "isFeatured": false,
     "isRecommended": false,
     "isBestSeller": false,
-    "isDiscounted": false
+    "isDiscounted": false,
+    "unitType": "weight"
   }
 ]

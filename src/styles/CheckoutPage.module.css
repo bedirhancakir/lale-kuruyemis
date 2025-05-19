@@ -146,6 +146,36 @@
   align-items: center;
 }
 
+/* ✅ Yeni eklendi: Ürün listesini yazılı göster */
+.itemList {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.itemRow {
+  font-size: 0.95rem;
+  color: #444;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  border-bottom: 1px dashed #eee;
+  padding-bottom: 0.5rem;
+}
+
+.itemName {
+  font-weight: 500;
+  color: #222;
+}
+
+.itemDetail {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* === Fiyat çizgileri === */
 .priceLine {
   display: flex;
   justify-content: space-between;
@@ -170,6 +200,7 @@
   font-weight: bold;
 }
 
+/* === Sözleşme kutusu === */
 .agreement {
   font-size: 0.85rem;
   margin-bottom: 1rem;

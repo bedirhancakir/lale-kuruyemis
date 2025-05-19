@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "../../styles/AdminCategories.module.css";
-import { FiTrash2, FiEdit, FiPlus } from "react-icons/fi";
+import { FaTrash, FaEdit, FaPlus } from "react-icons/fa";
 import CategoriesModal from "../../components/admin-panel/CategoriesModal";
 import ConfirmPopup from "../../components/admin-panel/ConfirmPopup";
 
@@ -9,16 +9,21 @@ export default function CategoriesManagement() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("create");
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [confirmPopup, setConfirmPopup] = useState(null); // ✅
+  const [confirmPopup, setConfirmPopup] = useState(null);
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  const fetchCategories = () => {
-    fetch("/api/public/categories")
-      .then((res) => res.json())
-      .then((data) => setCategories(data));
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/public/categories");
+      const data = await res.json();
+      setCategories(data);
+      console.log("Kategoriler yüklendi:", data);
+    } catch (error) {
+      console.error("Kategoriler yüklenemedi:", error.message);
+    }
   };
 
   const deleteCategory = (id) => {
@@ -26,18 +31,22 @@ export default function CategoriesManagement() {
       title: "Ana Kategori Sil",
       message: "Bu ana kategoriyi silmek istediğinize emin misiniz?",
       onConfirm: async () => {
-        const res = await fetch("/api/admin/categories", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "category", id }),
-        });
+        try {
+          const res = await fetch("/api/admin/categories", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "category", id }),
+          });
 
-        if (res.ok) {
+          if (!res.ok) throw new Error("Silme işlemi başarısız");
           const updated = await res.json();
           setCategories(updated);
+          console.log("Kategori silindi:", id);
+        } catch (error) {
+          console.error("Kategori silinemedi:", error.message);
+        } finally {
+          setConfirmPopup(null);
         }
-
-        setConfirmPopup(null); // ✅ popup kapat
       },
     });
   };
@@ -59,7 +68,7 @@ export default function CategoriesManagement() {
       <div className={styles.headerRow}>
         <h1>Kategori Yönetimi</h1>
         <button onClick={openCreateModal} className={styles.createBtn}>
-          <FiPlus /> Kategori Ekle
+          <FaPlus /> Kategori Ekle
         </button>
       </div>
 
@@ -72,14 +81,16 @@ export default function CategoriesManagement() {
                 <button
                   onClick={() => deleteCategory(cat.id)}
                   className={styles.deleteBtn}
+                  title="Sil"
                 >
-                  <FiTrash2 />
+                  <FaTrash />
                 </button>
                 <button
                   onClick={() => openEditModal(cat)}
                   className={styles.editBtn}
+                  title="Düzenle"
                 >
-                  <FiEdit />
+                  <FaEdit />
                 </button>
               </strong>
               <ul className={styles.subList}>

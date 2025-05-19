@@ -7,17 +7,21 @@ export function CategoryProvider({ children, initialCategories = [] }) {
   const [fetched, setFetched] = useState(initialCategories.length > 0);
 
   useEffect(() => {
-    if (fetched) return; // zaten başta initialCategories geldiyse fetch etme
+    if (fetched) return;
 
-    fetch("/api/public/categories")
-      .then((res) => res.json())
-      .then((data) => {
+    // Bu sadece SSR ile veri gelmezse çalışır (mesela client-side yüklemelerde)
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/public/categories");
+        const data = await res.json();
         setCategories(data);
-        setFetched(true); // bir daha fetch etmesin
-      })
-      .catch((err) => {
-        console.error("Kategori verisi alınamadı:", err);
-      });
+        setFetched(true);
+      } catch (err) {
+        console.error("Kategori verisi çekilemedi:", err.message);
+      }
+    };
+
+    fetchCategories();
   }, [fetched]);
 
   return (
@@ -27,6 +31,4 @@ export function CategoryProvider({ children, initialCategories = [] }) {
   );
 }
 
-export function useCategories() {
-  return useContext(CategoryContext);
-}
+export const useCategories = () => useContext(CategoryContext);

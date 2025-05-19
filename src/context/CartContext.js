@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 const CartContext = createContext();
-
 const CART_KEY = "cart";
 
 export function CartProvider({ children }) {
@@ -17,39 +16,71 @@ export function CartProvider({ children }) {
   }, [cartItems]);
 
   const addToCart = (product) => {
-    const existing = cartItems.find((item) => item.id === product.id);
+    const existing = cartItems.find(
+      (item) =>
+        item.id === product.id && item.selectedAmount === product.selectedAmount
+    );
+
+    const isUnit = product.unitType === "unit";
+    const quantityToAdd = isUnit ? product.selectedAmount : 1;
+
     if (existing) {
       setCartItems((prev) =>
         prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+          item.id === product.id &&
+          item.selectedAmount === product.selectedAmount
+            ? {
+                ...item,
+                quantity: item.quantity + quantityToAdd,
+              }
             : item
         )
       );
     } else {
-      setCartItems((prev) => [...prev, { ...product, quantity: 1 }]);
+      setCartItems((prev) => [
+        ...prev,
+        { ...product, quantity: quantityToAdd },
+      ]);
     }
   };
 
-  const removeFromCart = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const updateQuantity = (id, quantity) => {
+  const removeFromCart = (id, selectedAmount) => {
     setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(quantity, 1) } : item
+      prev.filter(
+        (item) => !(item.id === id && item.selectedAmount === selectedAmount)
       )
     );
   };
 
-  const clearCart = () => {
-    setCartItems([]);
+  const updateQuantity = (id, selectedAmount, quantity) => {
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === id && item.selectedAmount === selectedAmount
+          ? { ...item, quantity: Math.max(quantity, 1) }
+          : item
+      )
+    );
   };
 
-  const cartItemCount = () => {
-    return cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const updateSelection = (id, oldAmount, newAmount, label, newPrice) => {
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === id && item.selectedAmount === oldAmount
+          ? {
+              ...item,
+              selectedAmount: newAmount,
+              displayAmount: label,
+              finalPrice: newPrice,
+            }
+          : item
+      )
+    );
   };
+
+  const clearCart = () => setCartItems([]);
+
+  const cartItemCount = () =>
+    cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider
@@ -58,8 +89,9 @@ export function CartProvider({ children }) {
         addToCart,
         removeFromCart,
         updateQuantity,
+        updateSelection,
         clearCart,
-        cartItemCount, // Sepetteki ürün sayısını header'da gösterdiğimiz değer
+        cartItemCount,
       }}
     >
       {children}

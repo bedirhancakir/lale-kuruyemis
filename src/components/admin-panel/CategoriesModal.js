@@ -9,14 +9,12 @@ export default function CategoriesModal({
   onClose = () => {},
   onSave = () => {},
 }) {
-  const [name, setName] = useState(category?.name || "");
-  const [description, setDescription] = useState(category?.description || "");
-  const [image, setImage] = useState(category?.image || "");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [image, setImage] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [newSubcategories, setNewSubcategories] = useState("");
-  const [subcategories, setSubcategories] = useState(
-    category?.subcategories || []
-  );
+  const [subcategories, setSubcategories] = useState([]);
   const [deletedSubcategories, setDeletedSubcategories] = useState([]);
   const fileInputRef = useRef(null);
 
@@ -31,13 +29,15 @@ export default function CategoriesModal({
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
+    if (file && file.type.startsWith("image/")) {
       setImageFile(file);
+    } else {
+      alert("Sadece görsel dosyası yüklenebilir.");
     }
   };
 
   const handleDeleteSubcategory = (subId) => {
-    setSubcategories((prev) => prev.filter((sub) => sub.id !== subId));
+    setSubcategories((prev) => prev.filter((s) => s.id !== subId));
     setDeletedSubcategories((prev) => [...prev, subId]);
   };
 
@@ -51,22 +51,20 @@ export default function CategoriesModal({
       formData.append("name", name || "kategori");
       formData.append("type", "category-banner");
 
-      const uploadRes = await fetch("/api/admin/upload", {
+      const res = await fetch("/api/admin/upload", {
         method: "POST",
         body: formData,
       });
 
-      const uploadData = await uploadRes.json();
-
-      if (!uploadRes.ok || !uploadData.url) {
+      const data = await res.json();
+      if (!res.ok || !data.url) {
         alert("Görsel yüklenemedi.");
         return;
       }
-
-      finalImage = uploadData.url;
+      finalImage = data.url;
     }
 
-    const postBody = {
+    const body = {
       type: "category",
       name,
       description,
@@ -74,15 +72,15 @@ export default function CategoriesModal({
     };
 
     if (isEdit) {
-      postBody.forceUpdate = true;
-      postBody.oldId = category.id;
-      postBody.oldImage = category.image || "";
+      body.forceUpdate = true;
+      body.oldId = category.id;
+      body.oldImage = category.image || "";
     }
 
     const res = await fetch("/api/admin/categories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(postBody),
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) {
@@ -90,46 +88,34 @@ export default function CategoriesModal({
       return;
     }
 
-    const updatedCategories = await res.json();
-    const updatedId = isEdit
+    const updated = await res.json();
+    const categoryId = isEdit
       ? category.id
-      : updatedCategories.find((cat) => cat.name === name)?.id;
+      : updated.find((c) => c.name === name)?.id;
 
-    if (!updatedId) {
-      alert("Yeni kategori oluşturuldu ama ID alınamadı.");
-      return;
-    }
+    if (!categoryId) return alert("Kategori ID alınamadı.");
 
-    // ✅ Yeni alt kategoriler
-    if (newSubcategories.trim() !== "") {
+    // Yeni alt kategoriler
+    if (newSubcategories.trim()) {
       const parts = newSubcategories
         .split(",")
-        .map((p) => p.trim())
+        .map((s) => s.trim())
         .filter(Boolean);
-
       for (let sub of parts) {
         await fetch("/api/admin/categories", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "subcategory",
-            categoryId: updatedId,
-            name: sub,
-          }),
+          body: JSON.stringify({ type: "subcategory", categoryId, name: sub }),
         });
       }
     }
 
-    // ✅ Silinen alt kategoriler
+    // Silinen alt kategoriler
     for (let subId of deletedSubcategories) {
       await fetch("/api/admin/categories", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "subcategory",
-          categoryId: updatedId,
-          id: subId,
-        }),
+        body: JSON.stringify({ type: "subcategory", categoryId, id: subId }),
       });
     }
 
@@ -161,26 +147,23 @@ export default function CategoriesModal({
             onChange={handleFileChange}
             ref={fileInputRef}
           />
-
           {(imageFile || image) && (
             <div className={styles.imagePreview}>
               <Image
                 src={imageFile ? URL.createObjectURL(imageFile) : image}
-                alt="Kategori görseli"
+                alt="Kategori Görseli"
                 width={400}
                 height={200}
                 style={{ objectFit: "contain" }}
               />
             </div>
           )}
-
           <input
             type="text"
             placeholder="Yeni alt kategoriler (örn: Fıstık, Badem)"
             value={newSubcategories}
             onChange={(e) => setNewSubcategories(e.target.value)}
           />
-
           {mode === "edit" && (
             <ul className={styles.subList}>
               {subcategories.map((sub) => (
@@ -188,8 +171,8 @@ export default function CategoriesModal({
                   {sub.name}
                   <button
                     type="button"
-                    onClick={() => handleDeleteSubcategory(sub.id)}
                     className={styles.deleteBtn}
+                    onClick={() => handleDeleteSubcategory(sub.id)}
                     title="Alt kategoriyi sil"
                   >
                     <FiTrash2 />
@@ -198,12 +181,11 @@ export default function CategoriesModal({
               ))}
             </ul>
           )}
-
           <div className={styles.buttonGroup}>
-            <button onClick={handleSave} className={styles.saveButton}>
+            <button className={styles.saveButton} onClick={handleSave}>
               Kaydet
             </button>
-            <button onClick={onClose} className={styles.cancelButton}>
+            <button className={styles.cancelButton} onClick={onClose}>
               İptal
             </button>
           </div>

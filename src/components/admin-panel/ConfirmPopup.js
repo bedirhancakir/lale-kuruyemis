@@ -1,6 +1,6 @@
 import styles from "./ConfirmPopup.module.css";
 
-export default function confirmPopup({ title, message, onConfirm, onCancel }) {
+export default function ConfirmPopup({ title, message, onConfirm, onCancel }) {
   return (
     <div className={styles.overlay}>
       <div className={styles.popup}>

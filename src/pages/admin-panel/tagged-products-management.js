@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import styles from "../../styles/TaggedProducts.module.css";
+import {
+  FaFolderOpen,
+  FaStar,
+  FaBullseye,
+  FaFire,
+  FaTags,
+} from "react-icons/fa";
 
 const TAGS = [
-  { key: "all", label: "🗂️ Tüm Ürünler" },
-  { key: "isFeatured", label: "⭐ Öne Çıkanlar" },
-  { key: "isRecommended", label: "🎯 Önerilenler" },
-  { key: "isBestSeller", label: "🔥 En Çok Satanlar" },
-  { key: "isDiscounted", label: "💸 İndirimli Ürünler" },
+  { key: "all", label: "Tüm Ürünler", icon: <FaFolderOpen /> },
+  { key: "isFeatured", label: "Öne Çıkanlar", icon: <FaStar /> },
+  { key: "isRecommended", label: "Önerilenler", icon: <FaBullseye /> },
+  { key: "isBestSeller", label: "En Çok Satanlar", icon: <FaFire /> },
+  { key: "isDiscounted", label: "İndirimliler", icon: <FaTags /> },
 ];
 
 export default function TaggedProductsManagement() {
@@ -17,33 +24,36 @@ export default function TaggedProductsManagement() {
     fetch("/api/admin/admin-products")
       .then((res) => res.json())
       .then((data) => {
-        console.log("API'den gelen ürünler:", data); // 🔍 burayı ekle
         const normalized = data.map((p) => ({
           ...p,
-          isFeatured: typeof p.isFeatured === "boolean" ? p.isFeatured : false,
-          isRecommended:
-            typeof p.isRecommended === "boolean" ? p.isRecommended : false,
-          isBestSeller:
-            typeof p.isBestSeller === "boolean" ? p.isBestSeller : false,
-          isDiscounted:
-            typeof p.isDiscounted === "boolean" ? p.isDiscounted : false,
+          isFeatured: !!p.isFeatured,
+          isRecommended: !!p.isRecommended,
+          isBestSeller: !!p.isBestSeller,
+          isDiscounted: !!p.isDiscounted,
         }));
         setProducts(normalized);
-      });
+      })
+      .catch((err) =>
+        console.error("Etiketli ürünler alınamadı:", err.message)
+      );
   }, []);
 
   const handleTagToggle = async (productId, tag, currentValue) => {
     const updated = !currentValue;
 
-    await fetch("/api/admin/tags", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId, tag, value: updated }),
-    });
+    try {
+      await fetch("/api/admin/tags", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, tag, value: updated }),
+      });
 
-    setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, [tag]: updated } : p))
-    );
+      setProducts((prev) =>
+        prev.map((p) => (p.id === productId ? { ...p, [tag]: updated } : p))
+      );
+    } catch (err) {
+      console.error("Etiket güncellenemedi:", err.message);
+    }
   };
 
   return (
@@ -57,7 +67,7 @@ export default function TaggedProductsManagement() {
             onClick={() => setActiveTag(tag.key)}
             className={activeTag === tag.key ? styles.active : ""}
           >
-            {tag.label}
+            {tag.icon} {tag.label}
           </button>
         ))}
       </div>
@@ -66,11 +76,11 @@ export default function TaggedProductsManagement() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Ürün</th>
-              <th>⭐</th>
-              <th>🎯</th>
-              <th>🔥</th>
-              <th>💸</th>
+              <th>Ürünler</th>
+              <th>Öne Çıkan Ürünler</th>
+              <th>Önerilen Ürünler</th>
+              <th>En Çok Satanlar</th>
+              <th>İndirimli Ürünler</th>
             </tr>
           </thead>
           <tbody>
@@ -98,13 +108,13 @@ export default function TaggedProductsManagement() {
       ) : (
         <ul className={styles.list}>
           {products
-            .filter((p) => p[activeTag]) // sadece o tag'e sahip ürünleri göster
+            .filter((p) => p[activeTag])
             .map((product) => (
               <li key={product.id} className={styles.item}>
                 <label>
                   <input
                     type="checkbox"
-                    checked={product[activeTag] || false}
+                    checked={product[activeTag]}
                     onChange={() =>
                       handleTagToggle(product.id, activeTag, product[activeTag])
                     }

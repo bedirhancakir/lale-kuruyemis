@@ -8,6 +8,15 @@ export default function BannerModal({ onClose = () => {}, onSave = () => {} }) {
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile && selectedFile.type.startsWith("image/")) {
+      setFile(selectedFile);
+    } else {
+      alert("Lütfen geçerli bir görsel seçin.");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) return alert("Lütfen bir görsel seçin.");
@@ -20,22 +29,24 @@ export default function BannerModal({ onClose = () => {}, onSave = () => {} }) {
     formData.append("link", link);
 
     setLoading(true);
+    try {
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    const res = await fetch("/api/admin/upload", {
-      method: "POST",
-      body: formData,
-    });
+      if (!res.ok) throw new Error("Yükleme başarısız");
 
-    setLoading(false);
-
-    if (!res.ok) {
-      alert("Yükleme başarısız.");
-    } else {
+      onSave();
+      onClose();
       setFile(null);
       setTitle("");
       setLink("");
-      onSave();
-      onClose();
+    } catch (err) {
+      console.error(err);
+      alert("Yükleme sırasında hata oluştu.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,12 +54,11 @@ export default function BannerModal({ onClose = () => {}, onSave = () => {} }) {
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
         <h2>Yeni Banner Ekle</h2>
-
         <form onSubmit={handleSubmit} className={styles.form}>
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setFile(e.target.files[0])}
+            onChange={handleFileChange}
             required
           />
           <input
@@ -63,7 +73,6 @@ export default function BannerModal({ onClose = () => {}, onSave = () => {} }) {
             value={link}
             onChange={(e) => setLink(e.target.value)}
           />
-
           {file && (
             <div className={styles.imagePreview}>
               <Image
@@ -74,7 +83,6 @@ export default function BannerModal({ onClose = () => {}, onSave = () => {} }) {
               />
             </div>
           )}
-
           <div className={styles.buttonGroup}>
             <button
               type="submit"

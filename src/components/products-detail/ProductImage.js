@@ -1,4 +1,3 @@
-// ✅ components/products-detail/ProductImage.js
 import Image from "next/image";
 import styles from "./ProductImage.module.css";
 
@@ -23,10 +22,12 @@ export default function ProductImage({ product }) {
 
       <Image
         src={product.image}
-        alt={product.name}
+        alt={`${product.name} görseli`}
         width={600}
         height={400}
         className={styles.image}
+        placeholder="blur"
+        blurDataURL="/images/placeholder.jpg"
         priority
       />
     </div>

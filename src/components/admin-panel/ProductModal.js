@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import styles from "./ProductModal.module.css";
 import Image from "next/image";
+import styles from "./ProductModal.module.css";
 
-// ✅ Slugify fonksiyonu
 function slugify(text) {
   return text
     .toLowerCase()
@@ -32,11 +31,13 @@ export default function ProductModal({
   const [categories, setCategories] = useState([]);
   const [categoryId, setCategoryId] = useState("");
   const [subcategoryId, setSubcategoryId] = useState("");
+  const [unitType, setUnitType] = useState("unit"); // "unit" | "weight"
 
   useEffect(() => {
     fetch("/api/public/categories")
       .then((res) => res.json())
-      .then((data) => setCategories(data));
+      .then((data) => setCategories(data))
+      .catch((err) => console.error("Kategori verisi alınamadı:", err));
   }, []);
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function ProductModal({
       setImage(selectedProduct.image || "");
       setCategoryId(selectedProduct.category || "");
       setSubcategoryId(selectedProduct.subcategory || "");
+      setUnitType(selectedProduct.unitType || "unit");
       setImageFile(null);
     }
   }, [isEditing, selectedProduct]);
@@ -54,17 +56,14 @@ export default function ProductModal({
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     if (!file.type.startsWith("image/")) {
       alert("Sadece görsel dosyaları yükleyebilirsiniz.");
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       alert("Görsel boyutu en fazla 5MB olabilir.");
       return;
     }
-
     setImageFile(file);
   };
 
@@ -86,12 +85,7 @@ export default function ProductModal({
         });
 
         const data = await res.json();
-
-        if (!res.ok || !data.url) {
-          alert("Görsel yüklenemedi.");
-          return;
-        }
-
+        if (!res.ok || !data.url) throw new Error("Görsel yüklenemedi");
         finalImage = data.url;
       } catch (err) {
         console.error("Upload hatası:", err);
@@ -109,6 +103,7 @@ export default function ProductModal({
       category: categoryId,
       subcategory: subcategoryId,
       status: "aktif",
+      unitType,
     };
 
     try {
@@ -124,14 +119,12 @@ export default function ProductModal({
         body: JSON.stringify(productData),
       });
 
-      if (!res.ok) {
-        throw new Error("Kayıt başarısız.");
-      }
+      if (!res.ok) throw new Error("Ürün kaydedilemedi.");
 
       refreshProducts();
       closeModal();
     } catch (error) {
-      console.error("Ürün kaydedilemedi:", error);
+      console.error(error);
       alert("Ürün kaydedilemedi.");
     }
   };
@@ -140,7 +133,6 @@ export default function ProductModal({
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
         <h2>{isEditing ? "Ürünü Düzenle" : "Yeni Ürün Ekle"}</h2>
-
         <form onSubmit={handleSubmit} className={styles.form}>
           <input
             type="text"
@@ -149,14 +141,12 @@ export default function ProductModal({
             onChange={(e) => setName(e.target.value)}
             required
           />
-
           <textarea
             placeholder="Ürün Açıklaması"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
           />
-
           <input
             type="number"
             step="0.01"
@@ -200,14 +190,22 @@ export default function ProductModal({
             </select>
           )}
 
+          <select
+            value={unitType}
+            onChange={(e) => setUnitType(e.target.value)}
+            required
+          >
+            <option value="unit">Adet Bazlı</option>
+            <option value="weight">Gramaj Bazlı</option>
+          </select>
+
           <input type="file" accept="image/*" onChange={handleFileChange} />
 
-          {/* Yeni seçilen görselin önizlemesi */}
           {imageFile && (
             <div className={styles.imagePreview}>
               <Image
                 src={URL.createObjectURL(imageFile)}
-                alt="Yeni seçilen görsel"
+                alt="Yeni görsel"
                 width={400}
                 height={200}
                 style={{ objectFit: "contain" }}
@@ -215,7 +213,6 @@ export default function ProductModal({
             </div>
           )}
 
-          {/* Düzenleme modundaki mevcut görselin önizlemesi */}
           {!imageFile && image && (
             <div className={styles.imagePreview}>
               <Image

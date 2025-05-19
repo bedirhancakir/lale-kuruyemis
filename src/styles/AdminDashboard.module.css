@@ -81,3 +81,7 @@
   font-size: 0.95rem;
   color: #444;
 }
+
+.miniList li {
+  list-style: none;
+}

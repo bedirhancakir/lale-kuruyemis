@@ -1,6 +1,18 @@
 import fs from "fs/promises";
 import path from "path";
 import styles from "../../../styles/AdminDashboard.module.css";
+import {
+  FaShoppingCart,
+  FaMoneyBillWave,
+  FaBoxOpen,
+  FaArchive,
+  FaCalendarDay,
+  FaCalendarWeek,
+  FaHourglassHalf,
+  FaFire,
+  FaReceipt,
+  FaChartBar,
+} from "react-icons/fa";
 
 export async function getServerSideProps() {
   const ordersPath = path.join(process.cwd(), "data", "orders.json");
@@ -90,40 +102,58 @@ export default function AdminDashboard(props) {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>📊 Admin Panel – Dashboard</h1>
+      <h1 className={styles.title}>
+        <FaChartBar /> Admin Panel – Dashboard
+      </h1>
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <h3>🛒 Toplam Sipariş</h3>
+          <h3>
+            <FaShoppingCart /> Toplam Sipariş
+          </h3>
           <p>{totalOrders}</p>
         </div>
         <div className={styles.statCard}>
-          <h3>💰 Toplam Gelir</h3>
+          <h3>
+            <FaMoneyBillWave /> Toplam Gelir
+          </h3>
           <p>{totalRevenue}₺</p>
         </div>
         <div className={styles.statCard}>
-          <h3>📦 Aktif Ürün</h3>
+          <h3>
+            <FaBoxOpen /> Aktif Ürün
+          </h3>
           <p>{activeProducts}</p>
         </div>
         <div className={styles.statCard}>
-          <h3>📁 Arşivli Ürün</h3>
+          <h3>
+            <FaArchive /> Arşivli Ürün
+          </h3>
           <p>{archivedProducts}</p>
         </div>
         <div className={styles.statCard}>
-          <h3>📅 Bugünkü Sipariş</h3>
+          <h3>
+            <FaCalendarDay /> Bugünkü Sipariş
+          </h3>
           <p>{todayOrders}</p>
         </div>
         <div className={styles.statCard}>
-          <h3>🗓️ 7 Günde Sipariş</h3>
+          <h3>
+            <FaCalendarWeek /> 7 Günde Sipariş
+          </h3>
           <p>{weekOrders}</p>
         </div>
         <div className={styles.statCard}>
-          <h3>⏳ Teslim Bekleyen</h3>
+          <h3>
+            <FaHourglassHalf /> Teslim Bekleyen
+          </h3>
           <p>{pendingOrders}</p>
         </div>
 
         <div className={styles.statCard} style={{ flexBasis: "100%" }}>
-          <h3>🔥 En Çok Satılan Ürünler</h3>
+          <h3>
+            <FaFire /> En Çok Satılan Ürünler
+          </h3>
           <ul className={styles.miniList}>
             {topProducts.map((product, index) => (
               <li key={index}>
@@ -134,7 +164,9 @@ export default function AdminDashboard(props) {
         </div>
 
         <div className={styles.statCard} style={{ flexBasis: "100%" }}>
-          <h3>🧾 Son 5 Sipariş</h3>
+          <h3>
+            <FaReceipt /> Son 5 Sipariş
+          </h3>
           <ul className={styles.miniList}>
             {recentOrders.map((o) => (
               <li key={o.id}>
