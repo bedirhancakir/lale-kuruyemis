@@ -1,17 +1,23 @@
-// GET /api/public/categories
-
-import fs from "fs/promises";
-import path from "path";
+import { supabase } from "../../../lib/supabaseClient";
 
 export default async function handler(req, res) {
-  const filePath = path.join(process.cwd(), "data", "categories.json");
-
   try {
-    const data = await fs.readFile(filePath, "utf-8");
-    const categories = JSON.parse(data);
-    return res.status(200).json(categories);
-  } catch (error) {
-    console.error("Kategori verisi okunamadı:", error);
+    const { data: categories, error } = await supabase
+      .from("categories")
+      .select(
+        "id, name, description, image, slug, subcategories(id, name, slug)"
+      );
+
+    if (error) throw error;
+
+    const formatted = categories.map((cat) => ({
+      ...cat,
+      subcategories: cat.subcategories || [],
+    }));
+
+    return res.status(200).json(formatted);
+  } catch (err) {
+    console.error("Kategori verisi okunamadı:", err.message);
     return res.status(500).json({ error: "Kategori verisi yüklenemedi" });
   }
 }

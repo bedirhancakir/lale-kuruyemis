@@ -1,25 +1,20 @@
 import { useState, useEffect } from "react";
-import fs from "fs/promises";
-import path from "path";
 import Link from "next/link";
+import { supabase } from "../../../lib/supabaseClient";
+import withAuth from "../../../components/shared/withAuth";
 import styles from "../../../styles/orderdetail.module.css";
 
 export async function getServerSideProps({ params }) {
-  const filePath = path.join(process.cwd(), "data", "orders.json");
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("id", params.id)
+    .single();
 
-  try {
-    const data = await fs.readFile(filePath, "utf-8");
-    const orders = JSON.parse(data);
-    const order = orders.find((o) => o.id === params.id) || null;
-
-    return { props: { order } };
-  } catch (error) {
-    console.error("Sipariş dosyası okunamadı:", error.message);
-    return { props: { order: null } };
-  }
+  return { props: { order: order || null } };
 }
 
-export default function AdminOrderDetail({ order }) {
+function AdminOrderDetail({ order }) {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
@@ -28,8 +23,7 @@ export default function AdminOrderDetail({ order }) {
 
   if (!order) return <p>Sipariş bulunamadı.</p>;
 
-  // ✅ Doğru fiyatlar üzerinden ara toplam ve kargo
-  const rawTotal = order.cartItems.reduce(
+  const rawTotal = order.items.reduce(
     (sum, item) => sum + (item.finalPrice || item.price) * item.quantity,
     0
   );
@@ -50,7 +44,6 @@ export default function AdminOrderDetail({ order }) {
       if (!res.ok) throw new Error("Durum güncellenemedi.");
       alert("Sipariş durumu güncellendi.");
     } catch (error) {
-      console.error("Güncelleme hatası:", error.message);
       alert("Durum güncellenemedi.");
     }
   };
@@ -65,7 +58,7 @@ export default function AdminOrderDetail({ order }) {
       </div>
 
       <div className={styles.orderDate}>
-        {new Date(order.createdAt).toLocaleDateString("tr-TR")}
+        {new Date(order.created_at).toLocaleDateString("tr-TR")}
       </div>
 
       <div className={styles.statusBox}>
@@ -81,25 +74,29 @@ export default function AdminOrderDetail({ order }) {
       <div className={styles.section}>
         <h2>Müşteri Bilgileri</h2>
         <p>
-          <strong>İsim:</strong> {order.deliveryInfo.firstName}{" "}
-          {order.deliveryInfo.lastName}
+          <strong>İsim:</strong> {order.customer_name}
         </p>
         <p>
-          <strong>Email:</strong> {order.deliveryInfo.email}
+          <strong>Email:</strong> {order.email}
         </p>
         <p>
-          <strong>Telefon:</strong> {order.deliveryInfo.phone}
+          <strong>Telefon:</strong> {order.phone}
         </p>
         <p>
-          <strong>Adres:</strong> {order.deliveryInfo.address},{" "}
-          {order.deliveryInfo.district}, {order.deliveryInfo.city}
+          <strong>Adres:</strong> {order.address}, {order.district},{" "}
+          {order.city}
         </p>
+        {order.note && (
+          <p>
+            <strong>Not:</strong> {order.note}
+          </p>
+        )}
       </div>
 
       <div className={styles.section}>
         <h2>Ürünler</h2>
         <ul className={styles.productList}>
-          {order.cartItems.map((item, i) => (
+          {order.items.map((item, i) => (
             <li key={`${item.id}-${item.selectedAmount || i}`}>
               <strong>{item.name}</strong>
               {item.displayAmount && (
@@ -134,3 +131,5 @@ export default function AdminOrderDetail({ order }) {
     </div>
   );
 }
+
+export default withAuth(AdminOrderDetail, ["admin"]);

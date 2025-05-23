@@ -4,6 +4,8 @@ import Slider from "react-slick";
 import { useRouter } from "next/router";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL;
+
 function PrevArrow({ onClick }) {
   return (
     <button
@@ -47,27 +49,31 @@ export default function HeroBannerSlider({ banners = [] }) {
   return (
     <section className={styles.sliderWrapper} aria-label="Tanıtım Bannerları">
       <Slider {...settings}>
-        {banners.map((banner) => (
-          <div
-            key={banner.id}
-            className={styles.slide}
-            onClick={() => banner.link && router.push(banner.link)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) =>
-              e.key === "Enter" && banner.link && router.push(banner.link)
-            }
-          >
-            <Image
-              src={`/hero-banners/${banner.filename}`}
-              alt={banner.title || "Lale Kuruyemiş Banner"}
-              fill
-              sizes="100vw"
-              className={styles.image}
-              priority
-            />
-          </div>
-        ))}
+        {banners.map((banner) => {
+          const imageUrl = `${SUPABASE_URL}/hero-banners/${banner.filename}`;
+
+          return (
+            <div
+              key={banner.id}
+              className={styles.slide}
+              onClick={() => banner.link && router.push(banner.link)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) =>
+                e.key === "Enter" && banner.link && router.push(banner.link)
+              }
+            >
+              <Image
+                src={imageUrl}
+                alt={banner.title || "Lale Kuruyemiş Banner"}
+                fill
+                sizes="100vw"
+                className={styles.image}
+                priority
+              />
+            </div>
+          );
+        })}
       </Slider>
     </section>
   );

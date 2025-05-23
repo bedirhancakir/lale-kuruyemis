@@ -1,33 +1,32 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { nanoid } from "nanoid";
-
-const filePath = path.join(process.cwd(), "data", "products.json");
-
-async function readProducts() {
-  try {
-    const data = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(data || "[]");
-  } catch {
-    return [];
-  }
-}
-
-async function writeProducts(products) {
-  await fs.writeFile(filePath, JSON.stringify(products, null, 2));
-}
+import { supabase } from "../../../../lib/supabaseClient";
+import slugify from "../../../../utils/slugify";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    const products = await readProducts();
-    return res.status(200).json(products);
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Ürünler alınamadı:", error.message);
+      return res.status(500).json({ error: "Ürünler yüklenemedi" });
+    }
+
+    return res.status(200).json(data);
   }
 
   if (req.method === "POST") {
-    const { name, slug, description, price, image, category, subcategory } =
-      req.body;
+    const {
+      name,
+      description,
+      price,
+      image,
+      category,
+      subcategory,
+      unitType = "unit",
+    } = req.body;
 
-    // ✅ Zorunlu alan kontrolü
     if (
       !name ||
       !price ||
@@ -39,33 +38,57 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Eksik alanlar var." });
     }
 
-    // ✅ Yeni ürün objesi oluşturuluyor
-    const newProduct = {
-      id: nanoid(8),
-      name,
-      slug,
-      description,
-      price: parseFloat(price),
-      image,
-      category,
-      subcategory,
-      status: "aktif",
+    const slug = slugify(name);
 
-      // ✅ Etiket alanları varsayılan olarak false
-      isFeatured: false,
-      isRecommended: false,
-      isBestSeller: false,
-      isDiscounted: false,
-    };
+    // Slug'ları al
+    const { data: catData, error: catError } = await supabase
+      .from("categories")
+      .select("slug, subcategories(id, slug)")
+      .eq("id", category)
+      .single();
 
-    const products = await readProducts();
-    products.push(newProduct);
-    await writeProducts(products);
+    if (catError) {
+      console.error("Kategori verisi alınamadı:", catError.message);
+      return res.status(500).json({ error: "Kategori verisi okunamadı" });
+    }
 
-    return res
-      .status(201)
-      .json({ message: "Ürün başarıyla eklendi", product: newProduct });
+    const category_slug = catData?.slug || "";
+    const subcategory_slug =
+      catData?.subcategories?.find((s) => s.id === subcategory)?.slug || "";
+
+    const { data, error } = await supabase
+      .from("products")
+      .insert([
+        {
+          name,
+          slug,
+          description,
+          price,
+          image,
+          category_id: category,
+          subcategory_id: subcategory,
+          category_slug,
+          subcategory_slug,
+          status: "aktif",
+          unitType,
+          isFeatured: false,
+          isRecommended: false,
+          isBestSeller: false,
+          isDiscounted: false,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error("Ürün eklenemedi:", error.message);
+      return res.status(500).json({ error: "Ürün eklenemedi" });
+    }
+
+    return res.status(201).json({
+      message: "Ürün başarıyla eklendi",
+      product: data?.[0] || null,
+    });
   }
 
-  return res.status(405).json({ error: "İzin Verilmeyen Yöntem" });
+  return res.status(405).json({ error: "İzin verilmeyen yöntem" });
 }

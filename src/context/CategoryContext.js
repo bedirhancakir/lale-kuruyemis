@@ -9,7 +9,6 @@ export function CategoryProvider({ children, initialCategories = [] }) {
   useEffect(() => {
     if (fetched) return;
 
-    // Bu sadece SSR ile veri gelmezse çalışır (mesela client-side yüklemelerde)
     const fetchCategories = async () => {
       try {
         const res = await fetch("/api/public/categories");

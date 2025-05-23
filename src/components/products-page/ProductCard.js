@@ -1,8 +1,10 @@
+// components/cards/ProductCard.js
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { useFavorites } from "../../context/FavoritesContext";
+import { useRouter } from "next/router";
 import {
   AiOutlinePlus,
   AiOutlineMinus,
@@ -22,12 +24,12 @@ export default function ProductCard({ product, isSlider = false }) {
   const [added, setAdded] = useState(false);
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
-  const [dragging, setDragging] = useState(false);
+  const router = useRouter();
 
   const favorited = isFavorite(product.id);
 
-  const [selectedOption, setSelectedOption] = useState(1); // default 1
-  const [quantity, setQuantity] = useState(1); // sadece unit ürünler için
+  const [selectedOption, setSelectedOption] = useState(1);
+  const [quantity, setQuantity] = useState(1);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -47,57 +49,49 @@ export default function ProductCard({ product, isSlider = false }) {
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
 
-    // Seçimi sıfırla
     if (product.unitType === "weight") {
-      setSelectedOption(1); // 1kg
+      setSelectedOption(1);
     } else {
-      setQuantity(1); // 1 adet
+      setQuantity(1);
     }
   };
 
-  const handleToggleFavorite = (e) => {
-    e.preventDefault();
-    toggleFavorite(product);
-  };
-
-  const handleSelectClick = (e) => {
+  const handleToggleFavorite = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-  };
 
-  const handleMouseDown = () => setDragging(false);
-  const handleMouseMove = () => setDragging(true);
-  const handleClick = (e) => {
-    if (dragging) e.preventDefault();
-  };
-
-  const getFinalPrice = () => {
-    const amount = product.unitType === "weight" ? selectedOption : 1;
-    return (product.price * amount).toFixed(2);
+    try {
+      await toggleFavorite(product.id);
+    } catch (err) {
+      console.error("Favori işlemi hatası:", err.message);
+    }
   };
 
   return (
     <Link
       href={`/products-detail/${product.slug}`}
       className={styles.link}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onClick={handleClick}
       aria-label={`${product.name} detay sayfası`}
     >
       <article
         className={`${styles.card} ${isSlider ? styles.sliderCard : ""}`}
       >
-        <Image
-          src={product.image}
-          alt={`${product.name} görseli`}
-          width={300}
-          height={200}
-          className={styles.image}
-          placeholder="blur"
-          blurDataURL="/images/placeholder.jpg"
-          priority={!isSlider}
-        />
+        {product.image ? (
+          <Image
+            src={product.image}
+            alt={`${product.name} görseli`}
+            width={300}
+            height={200}
+            className={styles.image}
+            placeholder="blur"
+            blurDataURL="/images/placeholder.jpg"
+            priority={!isSlider}
+          />
+        ) : (
+          <div className={styles.imageFallback}>
+            <span>Görsel yok</span>
+          </div>
+        )}
 
         <div className={styles.headerRow}>
           <h3>{product.name}</h3>
@@ -126,7 +120,6 @@ export default function ProductCard({ product, isSlider = false }) {
             <select
               value={selectedOption}
               onChange={(e) => setSelectedOption(parseFloat(e.target.value))}
-              onClick={handleSelectClick}
               className={styles.selectBox}
             >
               {weightOptions.map((opt) => (
@@ -177,4 +170,9 @@ export default function ProductCard({ product, isSlider = false }) {
       </article>
     </Link>
   );
+
+  function getFinalPrice() {
+    const amount = product.unitType === "weight" ? selectedOption : 1;
+    return (product.price * amount).toFixed(2);
+  }
 }

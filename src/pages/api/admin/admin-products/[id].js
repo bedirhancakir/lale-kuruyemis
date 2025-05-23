@@ -1,112 +1,143 @@
-import fs from "fs/promises";
-import fsSync from "fs";
-import path from "path";
+import { supabase } from "../../../../lib/supabaseClient";
+import slugify from "../../../../utils/slugify";
 
-const filePath = path.join(process.cwd(), "data", "products.json");
-
-async function readProducts() {
-  try {
-    const data = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(data || "[]");
-  } catch {
-    return [];
-  }
-}
-
-async function writeProducts(products) {
-  await fs.writeFile(filePath, JSON.stringify(products, null, 2));
-}
+const BUCKET_NAME = "lale-assets";
 
 export default async function handler(req, res) {
   const { id } = req.query;
-  const products = await readProducts();
-  const productIndex = products.findIndex((p) => p.id === id);
 
-  if (productIndex === -1) {
-    return res.status(404).json({ error: "Ürün bulunamadı" });
-  }
-
-  // ✅ Ürün Güncelleme (PUT)
   if (req.method === "PUT") {
     const {
       name,
       description,
       price,
       image,
-      status,
       category,
       subcategory,
-      slug,
+      status,
+      unitType,
     } = req.body;
 
-    const currentProduct = products[productIndex];
-    const oldImage = currentProduct.image;
+    const updateData = {
+      description,
+      price,
+      image,
+      category_id: category,
+      subcategory_id: subcategory,
+      status,
+      unitType,
+    };
 
-    // ✅ Eğer yeni görsel geldiyse ve eskisinden farklıysa, eskiyi sil
-    if (image && oldImage && image !== oldImage) {
-      const oldImagePath = path.join(
-        process.cwd(),
-        "public",
-        oldImage.replace(/^\//, "")
-      );
-      try {
-        if (fsSync.existsSync(oldImagePath)) {
-          await fs.unlink(oldImagePath);
-        }
-      } catch (err) {
-        console.warn("Eski görsel silinemedi:", err.message);
+    if (name) {
+      updateData.name = name;
+      updateData.slug = slugify(name);
+    }
+
+    // Slug bilgilerini al
+    const { data: catData, error: catError } = await supabase
+      .from("categories")
+      .select("slug, subcategories(id, slug)")
+      .eq("id", category)
+      .single();
+
+    if (catError) {
+      console.error("Kategori slug bilgisi alınamadı:", catError.message);
+      return res.status(500).json({ error: "Slug bilgisi yüklenemedi" });
+    }
+
+    updateData.category_slug = catData?.slug || "";
+    updateData.subcategory_slug =
+      catData?.subcategories?.find((s) => s.id === subcategory)?.slug || "";
+
+    // Görsel silme işlemi
+    const { data: existing, error: fetchError } = await supabase
+      .from("products")
+      .select("image")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) {
+      console.error("Eski ürün alınamadı:", fetchError.message);
+      return res.status(500).json({ error: "Ürün alınamadı" });
+    }
+
+    if (
+      existing?.image &&
+      image &&
+      existing.image !== image &&
+      status !== "arşivli"
+    ) {
+      const oldPath = existing.image.split(`/object/public/${BUCKET_NAME}/`)[1];
+      if (oldPath) {
+        await supabase.storage.from(BUCKET_NAME).remove([oldPath]);
       }
     }
 
-    // ✅ Güncellenebilir alanlar
-    if (name) currentProduct.name = name;
-    if (slug) currentProduct.slug = slug;
-    if (description) currentProduct.description = description;
-    if (price) currentProduct.price = parseFloat(price);
-    if (image) currentProduct.image = image;
-    if (status) currentProduct.status = status;
-    if (category) currentProduct.category = category;
-    if (subcategory) currentProduct.subcategory = subcategory;
+    const { data: updatedData, error: updateError } = await supabase
+      .from("products")
+      .update(updateData)
+      .eq("id", id)
+      .select();
 
-    await writeProducts(products);
-    return res
-      .status(200)
-      .json({ message: "Ürün güncellendi", product: currentProduct });
-  }
-
-  // ✅ Ürün Silme (DELETE)
-  if (req.method === "DELETE") {
-    const { archive } = req.query;
-
-    if (archive === "true") {
-      products[productIndex].status = "arşivli";
-    } else {
-      // ✅ Görsel dosyasını da sil
-      const imagePath = products[productIndex].image;
-      if (imagePath) {
-        const resolvedPath = path.join(
-          process.cwd(),
-          "public",
-          imagePath.replace(/^\//, "")
-        );
-        try {
-          if (fsSync.existsSync(resolvedPath)) {
-            await fs.unlink(resolvedPath);
-          }
-        } catch (err) {
-          console.warn("Görsel silinemedi:", err.message);
-        }
-      }
-
-      // Ürünü diziden kaldır
-      products.splice(productIndex, 1);
+    if (updateError) {
+      console.error("Ürün güncellenemedi:", updateError.message);
+      return res.status(500).json({ error: "Ürün güncellenemedi" });
     }
 
-    await writeProducts(products);
     return res.status(200).json({
-      message: archive === "true" ? "Ürün arşivlendi" : "Ürün silindi",
+      message: "Ürün güncellendi",
+      product: updatedData?.[0] || null,
     });
   }
 
-  return res.status(405).json({ error: "İzin Verilmeyen Yöntem" });
+  if (req.method === "DELETE") {
+    const isArchive = req.query.archive === "true";
+
+    if (isArchive) {
+      const { error: archiveError } = await supabase
+        .from("products")
+        .update({ status: "arşivli" })
+        .eq("id", id);
+
+      if (archiveError) {
+        console.error("Arşivleme hatası:", archiveError.message);
+        return res.status(500).json({ error: "Arşivleme başarısız" });
+      }
+
+      return res.status(200).json({ message: "Ürün arşivlendi" });
+    }
+
+    // Gerçek silme
+    const { data: existing, error: fetchError } = await supabase
+      .from("products")
+      .select("image")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) {
+      console.error("Ürün bilgisi alınamadı:", fetchError.message);
+      return res.status(500).json({ error: "Ürün bilgisi alınamadı" });
+    }
+
+    if (existing?.image) {
+      const oldPath = existing.image.split(`/object/public/${BUCKET_NAME}/`)[1];
+      if (oldPath) {
+        await supabase.storage.from(BUCKET_NAME).remove([oldPath]);
+      }
+    }
+
+    const { error: deleteError } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      console.error("Ürün silinemedi:", deleteError.message);
+      return res.status(500).json({ error: "Ürün silinemedi" });
+    }
+
+    return res.status(200).json({ message: "Ürün silindi" });
+  }
+
+  return res.status(405).json({ error: "İzin verilmeyen yöntem" });
 }

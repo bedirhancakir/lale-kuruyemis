@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import ProductModal from "../../components/admin-panel/ProductModal";
 import ConfirmPopup from "../../components/admin-panel/ConfirmPopup";
+import withAuth from "../../components/shared/withAuth";
 import Image from "next/image";
 import styles from "../../styles/AdminProducts.module.css";
 import { FaPlus, FaEdit, FaTrash, FaArchive, FaBoxOpen } from "react-icons/fa";
 
-export default function AdminProductsPage() {
+function AdminProductsPage() {
   const [products, setProducts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -30,7 +31,7 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, []); // 🔒 StrictMode iki kez tetikler ama production'da sorun olmaz
+  }, []);
 
   const openNewProductModal = () => {
     setSelectedProduct(null);
@@ -55,8 +56,12 @@ export default function AdminProductsPage() {
       archive: {
         title: "Ürünü Arşivle",
         message: "Bu ürünü arşivlemek istediğinize emin misiniz?",
-        url: `/api/admin/admin-products/${id}?archive=true`,
-        options: { method: "DELETE" },
+        url: `/api/admin/admin-products/${id}`,
+        options: {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "arşivli" }),
+        },
       },
       activate: {
         title: "Ürünü Aktifleştir",
@@ -197,3 +202,5 @@ export default function AdminProductsPage() {
     </div>
   );
 }
+
+export default withAuth(AdminProductsPage, ["admin"]);

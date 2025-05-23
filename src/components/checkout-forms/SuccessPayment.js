@@ -19,12 +19,7 @@ export default function SuccessPayment({ orderId }) {
       )}
 
       <Link href="/" passHref>
-        <button
-          className={styles.successButton}
-          aria-label="Alışverişe Devam Et"
-        >
-          Alışverişe Devam Et
-        </button>
+        <button className={styles.successButton}>Alışverişe Devam Et</button>
       </Link>
     </div>
   );

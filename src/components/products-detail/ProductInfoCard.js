@@ -1,3 +1,4 @@
+// components/cards/ProductInfoCard.js
 import Link from "next/link";
 import {
   AiOutlinePlus,
@@ -19,6 +20,8 @@ export default function ProductInfoCard({
   product,
   categoryName,
   subcategoryName,
+  categorySlug,
+  subcategorySlug,
   handleAddToCart,
   handleToggleFavorite,
   added,
@@ -28,11 +31,9 @@ export default function ProductInfoCard({
   const [quantity, setQuantity] = useState(1);
 
   const isWeight = product.unitType === "weight";
-
   const finalPrice = (product.price * (isWeight ? selectedOption : 1)).toFixed(
     2
   );
-
   const displayLabel = isWeight
     ? weightOptions.find((w) => w.value === selectedOption)?.label
     : `${quantity} adet`;
@@ -45,8 +46,11 @@ export default function ProductInfoCard({
       displayAmount: displayLabel,
     });
 
-    // Seçimi sıfırla
     isWeight ? setSelectedOption(1) : setQuantity(1);
+  };
+
+  const onToggleFavorite = () => {
+    handleToggleFavorite(product.id);
   };
 
   return (
@@ -55,9 +59,8 @@ export default function ProductInfoCard({
 
       {categoryName && subcategoryName && (
         <p className={styles.breadcrumb}>
-          <Link href={`/products/${product.category}`}>{categoryName}</Link>{" "}
-          &gt;{" "}
-          <Link href={`/products/${product.category}/${product.subcategory}`}>
+          <Link href={`/products/${categorySlug}`}>{categoryName}</Link> &gt;{" "}
+          <Link href={`/products/${categorySlug}/${subcategorySlug}`}>
             {subcategoryName}
           </Link>
         </p>
@@ -65,7 +68,6 @@ export default function ProductInfoCard({
 
       <p className={styles.description}>{product.description}</p>
 
-      {/* ✅ Seçim ve fiyat */}
       <div className={styles.selectRow}>
         {isWeight ? (
           <select
@@ -81,17 +83,11 @@ export default function ProductInfoCard({
           </select>
         ) : (
           <div className={styles.inlineControls}>
-            <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              aria-label="Adet azalt"
-            >
+            <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>
               <AiOutlineMinus />
             </button>
             <span>{quantity}</span>
-            <button
-              onClick={() => setQuantity(quantity + 1)}
-              aria-label="Adet artır"
-            >
+            <button onClick={() => setQuantity(quantity + 1)}>
               <AiOutlinePlus />
             </button>
           </div>
@@ -100,7 +96,6 @@ export default function ProductInfoCard({
         <p className={styles.price}>{finalPrice}₺</p>
       </div>
 
-      {/* ✅ Sepet ve favori */}
       <div className={styles.actions}>
         <button onClick={onAddToCart} className={styles.cartButton}>
           {added ? (
@@ -114,7 +109,7 @@ export default function ProductInfoCard({
           )}
         </button>
         <button
-          onClick={handleToggleFavorite}
+          onClick={onToggleFavorite}
           className={styles.favButton}
           aria-label="Favorilere ekle/kaldır"
         >

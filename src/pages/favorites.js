@@ -1,16 +1,31 @@
+// pages/favorites.js
 import Head from "next/head";
 import ProductCard from "../components/products-page/ProductCard";
 import styles from "../styles/FavoritesPage.module.css";
 import { useFavorites } from "../context/FavoritesContext";
-import { useMemo } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useRouter } from "next/router";
+import { useEffect, useMemo } from "react";
 
 export default function FavoritesPage() {
-  const { favorites } = useFavorites();
+  const { favorites } = useFavorites(); // supabase üzerinden geliyor
+  const { user, profile, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // login olmayan kullanıcıyı yönlendir
+    if (!loading && (!user || !profile)) {
+      router.replace("/login");
+    }
+  }, [user, profile, loading]);
 
   const activeFavorites = useMemo(
-    () => favorites.filter((product) => product.status !== "arşivli"),
+    () => favorites?.filter((product) => product?.status !== "arşivli"),
     [favorites]
   );
+
+  // sayfa yükleniyorken veya login değilse boş döndür
+  if (loading || !user || !profile) return null;
 
   return (
     <>
@@ -19,17 +34,6 @@ export default function FavoritesPage() {
         <meta
           name="description"
           content="Favorilerinizi görüntüleyin ve tek tıkla ulaşın."
-        />
-        <link rel="canonical" href="https://www.lalekuruyemis.com/favorites" />
-        <meta property="og:title" content="Favoriler – Lale Kuruyemiş" />
-        <meta
-          property="og:description"
-          content="Favori ürünlerinize hızlıca erişin."
-        />
-        <meta property="og:image" content="/images/placeholder.jpg" />
-        <meta
-          property="og:url"
-          content="https://www.lalekuruyemis.com/favorites"
         />
       </Head>
 

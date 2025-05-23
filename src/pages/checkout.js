@@ -1,167 +1,100 @@
 import Head from "next/head";
 import { useState } from "react";
-import CheckoutSteps from "../components/checkout-forms/CheckoutSteps";
-import Step1_DeliveryForm from "../components/checkout-forms/DeliveryForm";
-import Step2_PaymentForm from "../components/checkout-forms/PaymentForm";
-import Step3_Success from "../components/checkout-forms/SuccessPayment";
+import { useForm, FormProvider } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as Yup from "yup";
+
+import CheckoutSteps from "../components/checkout-forms/StepIndicator";
+import DeliveryForm from "../components/checkout-forms/DeliveryForm";
+import PaymentForm from "../components/checkout-forms/PaymentForm";
+import SuccessPayment from "../components/checkout-forms/SuccessPayment";
 import OrderSummary from "../components/checkout-forms/OrderSummary";
+
 import { useCart } from "../context/CartContext";
 import styles from "../styles/CheckoutPage.module.css";
 
+const step1Schema = Yup.object({
+  full_name: Yup.string().required("Ad Soyad zorunlu"),
+  phone: Yup.string()
+    .matches(/^05\d{9}$/, "05xx xxx xx xx formatında")
+    .required("Telefon zorunlu"),
+  email: Yup.string().email("Geçersiz email").required("Email zorunlu"),
+  city: Yup.string().required("Şehir seçin"),
+  district: Yup.string().required("İlçe zorunlu"),
+  address: Yup.string().required("Adres zorunlu"),
+  note: Yup.string(),
+});
+
+const step2Schema = Yup.object({
+  cardNumber: Yup.string()
+    .matches(/^(\d{4} ){3}\d{4}$/, "XXXX XXXX XXXX XXXX formatında")
+    .required("Kart numarası zorunlu"),
+  cardName: Yup.string().required("Kart üzerindeki ad zorunlu"),
+  expiry: Yup.string()
+    .matches(/^\d{2}\/\d{2}$/, "MM/YY formatında girin")
+    .required("Tarih zorunlu"),
+  cvv: Yup.string()
+    .matches(/^\d{3,4}$/, "3 veya 4 haneli CVV girin")
+    .required("CVV zorunlu"),
+  agreement: Yup.boolean().oneOf(
+    [true],
+    "Mesafeli satış sözleşmesini onaylamanız gerekiyor"
+  ),
+});
+
 export default function CheckoutPage() {
   const [step, setStep] = useState(1);
+  const [orderId, setOrderId] = useState(null);
   const { cartItems, clearCart } = useCart();
 
-  const [deliveryInfo, setDeliveryInfo] = useState({
-    email: "",
-    firstName: "",
-    lastName: "",
-    country: "Türkiye",
-    city: "",
-    district: "",
-    phone: "",
-    address: "",
-    note: "",
+  const currentSchema = step === 1 ? step1Schema : step2Schema;
+
+  const methods = useForm({
+    resolver: yupResolver(currentSchema),
+    mode: "onSubmit",
+    shouldUnregister: false,
+    defaultValues: {
+      full_name: "",
+      phone: "",
+      email: "",
+      city: "",
+      district: "",
+      address: "",
+      note: "",
+      cardNumber: "",
+      cardName: "",
+      expiry: "",
+      cvv: "",
+      agreement: false,
+    },
   });
 
-  const [paymentInfo, setPaymentInfo] = useState({
-    cardNumber: "",
-    cardName: "",
-    expiry: "",
-    cvv: "",
-  });
-
-  const [deliveryErrors, setDeliveryErrors] = useState({});
-  const [paymentErrors, setPaymentErrors] = useState({});
-  const [showToast, setShowToast] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [isAgreementChecked, setIsAgreementChecked] = useState(false);
-  const [showAgreementError, setShowAgreementError] = useState(false);
-  const [orderId, setOrderId] = useState(null);
-
-  const validateDelivery = () => {
-    const newErrors = {};
-    let isValid = true;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!deliveryInfo.email || !emailRegex.test(deliveryInfo.email)) {
-      newErrors.email = "Geçerli bir e-posta giriniz";
-      isValid = false;
+  const onSubmit = async (data) => {
+    if (step === 1) {
+      setStep(2);
+      return;
     }
 
-    if (!/^05\d{9}$/.test(deliveryInfo.phone || "")) {
-      newErrors.phone = "Geçerli bir telefon numarası giriniz (05xx xxx xx xx)";
-      isValid = false;
-    }
+    const total = cartItems.reduce(
+      (sum, i) => sum + i.finalPrice * i.quantity,
+      0
+    );
 
-    const requiredFields = [
-      { name: "firstName", label: "Lütfen ad giriniz" },
-      { name: "lastName", label: "Lütfen soyad giriniz" },
-      { name: "city", label: "Lütfen şehir seçiniz" },
-      { name: "district", label: "Lütfen ilçe giriniz" },
-      { name: "address", label: "Lütfen adres giriniz" },
-    ];
+    const bodyData = { ...data, cartItems, total };
 
-    requiredFields.forEach(({ name, label }) => {
-      if (!deliveryInfo[name] || deliveryInfo[name].trim() === "") {
-        newErrors[name] = label;
-        isValid = false;
-      }
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bodyData),
     });
 
-    setDeliveryErrors(newErrors);
-    return isValid;
-  };
-
-  const validatePayment = () => {
-    const newErrors = {};
-    const rawCard = paymentInfo.cardNumber?.replace(/\s/g, "");
-
-    if (!rawCard || rawCard.length !== 16)
-      newErrors.cardNumber = "Kart numarası geçersiz";
-
-    if (!paymentInfo.cardName || paymentInfo.cardName.trim().length < 2)
-      newErrors.cardName = "Kart sahibi adı gerekli";
-
-    if (
-      !paymentInfo.expiry ||
-      paymentInfo.expiry.length !== 5 ||
-      !paymentInfo.expiry.includes("/")
-    ) {
-      newErrors.expiry = "Geçersiz Tarih";
+    const json = await res.json();
+    if (json.success) {
+      setOrderId(json.orderId);
+      clearCart();
+      setStep(3);
     } else {
-      const [monthStr, yearStr] = paymentInfo.expiry.split("/");
-      const month = parseInt(monthStr, 10);
-      const year = parseInt("20" + yearStr, 10);
-      const today = new Date();
-      const expDate = new Date(year, month - 1);
-
-      if (
-        isNaN(month) ||
-        isNaN(year) ||
-        month < 1 ||
-        month > 12 ||
-        expDate < today
-      ) {
-        newErrors.expiry = "Geçersiz tarih";
-      }
-    }
-
-    if (
-      !paymentInfo.cvv ||
-      paymentInfo.cvv.length < 3 ||
-      paymentInfo.cvv.length > 4
-    )
-      newErrors.cvv = "Geçersiz CVV";
-
-    setPaymentErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleMainButtonClick = async () => {
-    if (step === 1) {
-      if (validateDelivery()) {
-        setStep(2);
-        setShowToast(false);
-      }
-    } else if (step === 2) {
-      if (!isAgreementChecked) {
-        setShowAgreementError(true);
-        return;
-      }
-
-      if (!validatePayment()) return;
-
-      const total = cartItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
-
-      try {
-        const res = await fetch("/api/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            deliveryInfo,
-            paymentInfo,
-            cartItems,
-            total,
-          }),
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-          setOrderId(data.orderId);
-          setSubmitted(true);
-          clearCart();
-          setStep(3);
-        } else {
-          console.error("Sipariş oluşturulamadı:", data);
-        }
-      } catch (err) {
-        console.error("Sipariş gönderilirken hata oluştu:", err);
-      }
+      console.error("❌ Sipariş hatası:", json);
     }
   };
 
@@ -169,68 +102,63 @@ export default function CheckoutPage() {
     <>
       <Head>
         <title>Checkout – Lale Kuruyemiş</title>
-        <meta
-          name="description"
-          content="Teslimat ve ödeme bilgilerinizi girerek siparişinizi tamamlayın."
-        />
-        <link rel="canonical" href="https://www.lalekuruyemis.com/checkout" />
-        <meta property="og:title" content="Checkout – Lale Kuruyemiş" />
-        <meta
-          property="og:description"
-          content="Hızlı ve güvenli ödeme ile siparişinizi tamamlayın."
-        />
-        <meta
-          property="og:url"
-          content="https://www.lalekuruyemis.com/checkout"
-        />
       </Head>
 
       {step !== 3 && (
         <CheckoutSteps
           currentStep={step}
-          onStepClick={(s) => setStep(s)}
-          allowStep2={step >= 2}
+          onStepClick={(targetStep) => {
+            if (targetStep < step) setStep(targetStep);
+          }}
+          allowStep2={step > 1}
         />
       )}
 
-      <div className={styles.checkoutContainer}>
-        <div className={styles.checkoutWrapper}>
+      <FormProvider {...methods}>
+        <form className={styles.checkoutWrapper} noValidate>
           <div className={styles.checkoutLeft}>
-            {step === 1 && (
-              <Step1_DeliveryForm
-                formData={deliveryInfo}
-                setFormData={setDeliveryInfo}
-                errors={deliveryErrors}
-                setErrors={setDeliveryErrors}
-                showToast={showToast}
-              />
-            )}
-            {step === 2 && (
-              <Step2_PaymentForm
-                formData={paymentInfo}
-                setFormData={setPaymentInfo}
-                errors={paymentErrors}
-                setErrors={setPaymentErrors}
-              />
-            )}
-            {step === 3 && <Step3_Success orderId={orderId} />}
+            {step === 1 && <DeliveryForm />}
+            {step === 2 && <PaymentForm />}
+            {step === 3 && <SuccessPayment orderId={orderId} />}
           </div>
 
-          {step !== 3 && (
+          {step < 3 && (
             <div className={styles.checkoutRight}>
-              <OrderSummary
-                step={step}
-                onClick={handleMainButtonClick}
-                submitted={submitted}
-                isAgreementChecked={isAgreementChecked}
-                setIsAgreementChecked={setIsAgreementChecked}
-                showAgreementError={showAgreementError}
-                setShowAgreementError={setShowAgreementError}
-              />
+              <OrderSummary step={step} />
+
+              {step === 2 && (
+                <div className={styles.agreement}>
+                  <label className={styles.checkboxWrapper}>
+                    <input
+                      type="checkbox"
+                      {...methods.register("agreement")}
+                      className={
+                        methods.formState.errors.agreement
+                          ? styles.checkboxError
+                          : ""
+                      }
+                    />
+                    Mesafeli satış sözleşmesini okudum ve kabul ediyorum.
+                  </label>
+                  {methods.formState.errors.agreement && (
+                    <p className={styles.agreementError}>
+                      {methods.formState.errors.agreement.message}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className={styles.completeButton}
+                onClick={methods.handleSubmit(onSubmit)}
+              >
+                {step === 1 ? "Ödeme Yöntemine Geç" : "Siparişi Tamamla"}
+              </button>
             </div>
           )}
-        </div>
-      </div>
+        </form>
+      </FormProvider>
     </>
   );
 }

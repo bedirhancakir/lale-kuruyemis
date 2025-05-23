@@ -1,153 +1,94 @@
+import { useFormContext } from "react-hook-form";
 import styles from "../../styles/CheckoutPage.module.css";
-import CreditCardPreview from "./CreditCardPreview";
 
-export default function PaymentForm({
-  formData,
-  setFormData,
-  errors,
-  setErrors,
-}) {
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  const formatCardNumber = (val) => {
-    let raw = val.replace(/\D/g, "").slice(0, 16);
-    return raw.replace(/(.{4})/g, "$1 ").trim();
-  };
-
-  const formatExpiry = (val) => {
-    let clean = val.replace(/\D/g, "").slice(0, 4);
-    return clean.length >= 3
-      ? clean.replace(/(\d{2})(\d{1,2})/, "$1/$2")
-      : clean;
-  };
+export default function PaymentForm() {
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext();
 
   return (
     <div className={styles.paymentFormWrapper}>
       <div className={styles.paymentFormLeft}>
-        <h2 className={styles.stepTitle}>2. Adım: Ödeme Bilgileri</h2>
+        <h2 className={styles.stepTitle}>Ödeme Bilgileri</h2>
 
-        <div className={styles.formGroup}>
-          <label
-            htmlFor="cardNumber"
-            className={errors.cardNumber ? styles.errorLabel : ""}
-          >
-            Kart Numarası
-          </label>
-          <input
-            type="text"
-            name="cardNumber"
-            placeholder="1234 5678 9012 3456"
-            maxLength={19}
-            autoComplete="off"
-            className={`${styles.checkoutInput} ${
-              errors.cardNumber ? styles.errorInput : ""
-            }`}
-            value={formData.cardNumber || ""}
-            onChange={(e) => {
-              const formatted = formatCardNumber(e.target.value);
-              setFormData((prev) => ({ ...prev, cardNumber: formatted }));
-              if (errors.cardNumber)
-                setErrors((prev) => ({ ...prev, cardNumber: "" }));
-            }}
-          />
-          {errors.cardNumber && (
-            <div className={styles.errorText}>{errors.cardNumber}</div>
-          )}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label
-            htmlFor="cardName"
-            className={errors.cardName ? styles.errorLabel : ""}
-          >
-            Kart Sahibi
-          </label>
-          <input
-            type="text"
-            name="cardName"
-            placeholder="Ad Soyad"
-            autoComplete="off"
-            className={`${styles.checkoutInput} ${
-              errors.cardName ? styles.errorInput : ""
-            }`}
-            value={formData.cardName || ""}
-            onChange={handleChange}
-          />
-          {errors.cardName && (
-            <div className={styles.errorText}>{errors.cardName}</div>
-          )}
-        </div>
-
-        <div className={styles.formRow}>
+        <div className={styles.grid}>
           <div className={styles.formGroup}>
-            <label
-              htmlFor="expiry"
-              className={errors.expiry ? styles.errorLabel : ""}
-            >
-              Son Kullanma Tarihi
-            </label>
+            <label>Kart Numarası</label>
             <input
-              type="text"
-              name="expiry"
-              placeholder="AA/YY"
-              maxLength={5}
+              {...register("cardNumber")}
+              placeholder="1234 5678 9012 3456"
+              maxLength={19}
               className={`${styles.checkoutInput} ${
-                errors.expiry ? styles.errorInput : ""
+                errors.cardNumber ? styles.errorInput : ""
               }`}
-              value={formData.expiry || ""}
-              onChange={(e) => {
-                const formatted = formatExpiry(e.target.value);
-                setFormData((prev) => ({ ...prev, expiry: formatted }));
-                if (errors.expiry)
-                  setErrors((prev) => ({ ...prev, expiry: "" }));
-              }}
+              onInput={(e) =>
+                (e.target.value = e.target.value
+                  .replace(/\D/g, "")
+                  .replace(/(.{4})/g, "$1 ")
+                  .trim())
+              }
             />
-            {errors.expiry && (
-              <div className={styles.errorText}>{errors.expiry}</div>
+            {errors.cardNumber && (
+              <p className={styles.errorText}>{errors.cardNumber.message}</p>
             )}
           </div>
 
           <div className={styles.formGroup}>
-            <label
-              htmlFor="cvv"
-              className={errors.cvv ? styles.errorLabel : ""}
-            >
-              CVV
-            </label>
+            <label>Kart Üzerindeki İsim</label>
             <input
-              type="text"
-              name="cvv"
-              placeholder="CVV"
+              {...register("cardName")}
+              placeholder="Ad Soyad"
+              className={`${styles.checkoutInput} ${
+                errors.cardName ? styles.errorInput : ""
+              }`}
+            />
+            {errors.cardName && (
+              <p className={styles.errorText}>{errors.cardName.message}</p>
+            )}
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Son Kullanma (MM/YY)</label>
+            <input
+              {...register("expiry")}
+              placeholder="MM/YY"
+              maxLength={5}
+              className={`${styles.checkoutInput} ${
+                errors.expiry ? styles.errorInput : ""
+              }`}
+              onInput={(e) =>
+                (e.target.value = e.target.value
+                  .replace(/\D/g, "")
+                  .replace(/(\d{2})(\d{1,2})/, "$1/$2")
+                  .substring(0, 5))
+              }
+            />
+            {errors.expiry && (
+              <p className={styles.errorText}>{errors.expiry.message}</p>
+            )}
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>CVV</label>
+            <input
+              {...register("cvv")}
+              placeholder="XXX"
               maxLength={4}
-              autoComplete="off"
               className={`${styles.checkoutInput} ${
                 errors.cvv ? styles.errorInput : ""
               }`}
-              value={formData.cvv || ""}
-              onChange={(e) => {
-                const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-                setFormData((prev) => ({ ...prev, cvv: val }));
-                if (errors.cvv) setErrors((prev) => ({ ...prev, cvv: "" }));
-              }}
+              onInput={(e) =>
+                (e.target.value = e.target.value
+                  .replace(/\D/g, "")
+                  .substring(0, 4))
+              }
             />
-            {errors.cvv && <div className={styles.errorText}>{errors.cvv}</div>}
+            {errors.cvv && (
+              <p className={styles.errorText}>{errors.cvv.message}</p>
+            )}
           </div>
         </div>
-      </div>
-
-      <div className={styles.paymentFormRight}>
-        <CreditCardPreview
-          cardNumber={formData.cardNumber || ""}
-          name={formData.cardName || ""}
-          expiry={formData.expiry || ""}
-        />
       </div>
     </div>
   );

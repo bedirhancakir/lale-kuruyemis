@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import withAuth from "../../components/shared/withAuth";
 import styles from "../../styles/AdminCategories.module.css";
 import { FaTrash, FaEdit, FaPlus } from "react-icons/fa";
 import CategoriesModal from "../../components/admin-panel/CategoriesModal";
 import ConfirmPopup from "../../components/admin-panel/ConfirmPopup";
 
-export default function CategoriesManagement() {
+function CategoriesManagement() {
   const [categories, setCategories] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("create");
@@ -123,3 +124,5 @@ export default function CategoriesManagement() {
     </div>
   );
 }
+
+export default withAuth(CategoriesManagement, ["admin"]);

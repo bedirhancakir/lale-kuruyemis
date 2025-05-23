@@ -94,7 +94,7 @@ export default function HomePage({
       {/* 6 - Tam sayfa banner */}
       <section style={{ margin: "2rem 0" }}>
         <Image
-          src="/category-banners/placeholder.jpg"
+          src="/category-grid-images/placeholder.jpg"
           alt="Lale Kuruyemiş kategori"
           width={1920}
           height={300}

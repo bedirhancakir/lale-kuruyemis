@@ -1,23 +1,25 @@
+// pages/admin-panel/orders.js
 import Link from "next/link";
 import styles from "../../styles/AdminOrders.module.css";
-import fs from "fs/promises";
-import path from "path";
+import { supabase } from "../../lib/supabaseClient";
+import withAuth from "../../components/shared/withAuth";
 import { FaBoxOpen, FaShippingFast, FaCheckCircle } from "react-icons/fa";
 
 export async function getServerSideProps() {
-  const filePath = path.join(process.cwd(), "data", "orders.json");
+  const { data: orders, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  try {
-    const data = await fs.readFile(filePath, "utf-8");
-    const orders = JSON.parse(data);
-    return { props: { orders: orders.reverse() } };
-  } catch (error) {
+  if (error) {
     console.error("Siparişler okunamadı:", error.message);
     return { props: { orders: [] } };
   }
+
+  return { props: { orders } };
 }
 
-export default function AdminOrdersPage({ orders }) {
+function AdminOrdersPage({ orders }) {
   const statusList = ["Hazırlanıyor", "Kargoya Verildi", "Teslim Edildi"];
   const icons = {
     Hazırlanıyor: <FaBoxOpen />,
@@ -41,7 +43,7 @@ export default function AdminOrdersPage({ orders }) {
               <div
                 key={status}
                 className={`${styles.statusBox} ${
-                  styles[status.replace(/\s/g, "")]
+                  styles[status.replace(/\s/g, "")] || ""
                 }`}
               >
                 {icons[status]} {countOrders(status)}
@@ -69,15 +71,15 @@ export default function AdminOrdersPage({ orders }) {
             {orders.map((order, index) => (
               <tr key={order.id}>
                 <td>{index + 1}</td>
+                <td>{order.customer_name}</td>
                 <td>
-                  {order.deliveryInfo.firstName} {order.deliveryInfo.lastName}
+                  {new Date(order.created_at).toLocaleDateString("tr-TR")}
                 </td>
-                <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                <td>{order.total.toFixed(2)}₺</td>
+                <td>{order.total_amount.toFixed(2)}₺</td>
                 <td>
                   <span
                     className={`${styles.badge} ${
-                      styles[order.status.replace(/\s/g, "")]
+                      styles[order.status.replace(/\s/g, "")] || ""
                     }`}
                   >
                     {icons[order.status]} {order.status}
@@ -96,3 +98,5 @@ export default function AdminOrdersPage({ orders }) {
     </div>
   );
 }
+
+export default withAuth(AdminOrdersPage, ["admin"]);

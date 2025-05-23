@@ -1,49 +1,92 @@
 import { useState } from "react";
-import styles from "./BannerModal.module.css";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as Yup from "yup";
 import Image from "next/image";
+import styles from "./BannerModal.module.css";
 
 export default function BannerModal({ onClose = () => {}, onSave = () => {} }) {
   const [file, setFile] = useState(null);
-  const [title, setTitle] = useState("");
-  const [link, setLink] = useState("");
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const schema = Yup.object({
+    title: Yup.string().max(100, "En fazla 100 karakter olabilir"),
+    link: Yup.string()
+      .url("Geçerli bir URL girin")
+      .nullable()
+      .notRequired()
+      .transform((value) => (value === "" ? null : value)),
+  });
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      title: "",
+      link: "",
+    },
+  });
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
-      setFile(selectedFile);
-    } else {
+    if (!selectedFile || !selectedFile.type.startsWith("image/")) {
       alert("Lütfen geçerli bir görsel seçin.");
+      return;
     }
+    setFile(selectedFile);
+    setPreviewUrl(URL.createObjectURL(selectedFile));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!file) return alert("Lütfen bir görsel seçin.");
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("type", "hero-banner");
-    formData.append("name", title || "banner");
-    formData.append("title", title);
-    formData.append("link", link);
+  const onSubmit = async (data) => {
+    if (!file) {
+      alert("Lütfen bir görsel seçin.");
+      return;
+    }
 
     setLoading(true);
+
     try {
-      const res = await fetch("/api/admin/upload", {
+      // Görseli yükle
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "hero-banner");
+      formData.append("name", data.title || "banner");
+
+      const uploadRes = await fetch("/api/admin/upload", {
         method: "POST",
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Yükleme başarısız");
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || !uploadData.filename)
+        throw new Error("Görsel yükleme başarısız");
 
+      // Banner kaydı
+      const saveRes = await fetch("/api/admin/banners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: uploadData.filename,
+          title: data.title,
+          link: data.link,
+        }),
+      });
+
+      if (!saveRes.ok) throw new Error("Banner verisi kaydedilemedi");
+
+      reset(); // RHF temizle
+      setFile(null);
+      setPreviewUrl(null);
       onSave();
       onClose();
-      setFile(null);
-      setTitle("");
-      setLink("");
     } catch (err) {
-      console.error(err);
+      console.error("Banner hatası:", err);
       alert("Yükleme sırasında hata oluştu.");
     } finally {
       setLoading(false);
@@ -54,35 +97,49 @@ export default function BannerModal({ onClose = () => {}, onSave = () => {} }) {
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
         <h2>Yeni Banner Ekle</h2>
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
             required
           />
+
           <input
             type="text"
             placeholder="Başlık (opsiyonel)"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            {...register("title")}
+            className={errors.title ? styles.errorInput : ""}
           />
+          {errors.title && (
+            <div className={styles.errorText} role="alert">
+              {errors.title.message}
+            </div>
+          )}
+
           <input
             type="text"
             placeholder="Link (örn: /products/lokum)"
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
+            {...register("link")}
+            className={errors.link ? styles.errorInput : ""}
           />
-          {file && (
+          {errors.link && (
+            <div className={styles.errorText} role="alert">
+              {errors.link.message}
+            </div>
+          )}
+
+          {previewUrl && (
             <div className={styles.imagePreview}>
               <Image
-                src={URL.createObjectURL(file)}
+                src={previewUrl}
                 alt="Banner önizlemesi"
                 width={400}
                 height={200}
               />
             </div>
           )}
+
           <div className={styles.buttonGroup}>
             <button
               type="submit"

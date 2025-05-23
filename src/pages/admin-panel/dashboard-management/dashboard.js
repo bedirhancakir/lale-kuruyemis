@@ -1,6 +1,6 @@
-import fs from "fs/promises";
-import path from "path";
+import { supabase } from "../../../lib/supabaseClient";
 import styles from "../../../styles/AdminDashboard.module.css";
+import withAuth from "../../../components/shared/withAuth";
 import {
   FaShoppingCart,
   FaMoneyBillWave,
@@ -15,28 +15,39 @@ import {
 } from "react-icons/fa";
 
 export async function getServerSideProps() {
-  const ordersPath = path.join(process.cwd(), "data", "orders.json");
-  const productsPath = path.join(process.cwd(), "data", "products.json");
+  const { data: orders = [], error: orderError } = await supabase
+    .from("orders")
+    .select("id, created_at, total_amount, status, items, customer_name");
 
-  let orders = [];
-  let products = [];
+  const { data: products = [], error: productError } = await supabase
+    .from("products")
+    .select("id, name, status");
 
-  try {
-    const oData = await fs.readFile(ordersPath, "utf-8");
-    orders = JSON.parse(oData);
-  } catch (error) {
-    console.error("orders.json okunamadı:", error.message);
-  }
-
-  try {
-    const pData = await fs.readFile(productsPath, "utf-8");
-    products = JSON.parse(pData);
-  } catch (error) {
-    console.error("products.json okunamadı:", error.message);
+  if (orderError || productError) {
+    console.error(
+      "Sipariş veya ürün verisi çekilemedi:",
+      orderError,
+      productError
+    );
+    return {
+      props: {
+        totalOrders: 0,
+        totalRevenue: 0,
+        activeProducts: 0,
+        archivedProducts: 0,
+        todayOrders: 0,
+        weekOrders: 0,
+        pendingOrders: 0,
+        topProducts: [],
+        recentOrders: [],
+      },
+    };
   }
 
   const totalOrders = orders.length;
-  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0).toFixed(2);
+  const totalRevenue = orders
+    .reduce((sum, o) => sum + Number(o.total_amount || 0), 0)
+    .toFixed(2);
   const activeProducts = products.filter((p) => p.status === "aktif").length;
   const archivedProducts = products.filter(
     (p) => p.status === "arşivli"
@@ -44,12 +55,12 @@ export async function getServerSideProps() {
 
   const today = new Date().toDateString();
   const todayOrders = orders.filter(
-    (o) => new Date(o.createdAt).toDateString() === today
+    (o) => new Date(o.created_at).toDateString() === today
   ).length;
 
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const weekOrders = orders.filter(
-    (o) => new Date(o.createdAt) >= weekAgo
+    (o) => new Date(o.created_at) >= weekAgo
   ).length;
 
   const pendingOrders = orders.filter(
@@ -58,7 +69,7 @@ export async function getServerSideProps() {
 
   const productSales = {};
   orders.forEach((order) => {
-    order.cartItems.forEach((item) => {
+    order.items?.forEach((item) => {
       if (!productSales[item.id]) {
         productSales[item.id] = { name: item.name, count: 0 };
       }
@@ -70,7 +81,16 @@ export async function getServerSideProps() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
-  const recentOrders = orders.slice(-5).reverse();
+  const recentOrders = orders
+    .slice(-5)
+    .reverse()
+    .map((o) => ({
+      id: o.id,
+      date: o.created_at,
+      total: o.total_amount,
+      status: o.status,
+      name: o.customer_name,
+    }));
 
   return {
     props: {
@@ -87,19 +107,17 @@ export async function getServerSideProps() {
   };
 }
 
-export default function AdminDashboard(props) {
-  const {
-    totalOrders,
-    totalRevenue,
-    activeProducts,
-    archivedProducts,
-    todayOrders,
-    weekOrders,
-    pendingOrders,
-    topProducts,
-    recentOrders,
-  } = props;
-
+function AdminDashboard({
+  totalOrders,
+  totalRevenue,
+  activeProducts,
+  archivedProducts,
+  todayOrders,
+  weekOrders,
+  pendingOrders,
+  topProducts,
+  recentOrders,
+}) {
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>
@@ -107,59 +125,56 @@ export default function AdminDashboard(props) {
       </h1>
 
       <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <h3>
-            <FaShoppingCart /> Toplam Sipariş
-          </h3>
-          <p>{totalOrders}</p>
-        </div>
-        <div className={styles.statCard}>
-          <h3>
-            <FaMoneyBillWave /> Toplam Gelir
-          </h3>
-          <p>{totalRevenue}₺</p>
-        </div>
-        <div className={styles.statCard}>
-          <h3>
-            <FaBoxOpen /> Aktif Ürün
-          </h3>
-          <p>{activeProducts}</p>
-        </div>
-        <div className={styles.statCard}>
-          <h3>
-            <FaArchive /> Arşivli Ürün
-          </h3>
-          <p>{archivedProducts}</p>
-        </div>
-        <div className={styles.statCard}>
-          <h3>
-            <FaCalendarDay /> Bugünkü Sipariş
-          </h3>
-          <p>{todayOrders}</p>
-        </div>
-        <div className={styles.statCard}>
-          <h3>
-            <FaCalendarWeek /> 7 Günde Sipariş
-          </h3>
-          <p>{weekOrders}</p>
-        </div>
-        <div className={styles.statCard}>
-          <h3>
-            <FaHourglassHalf /> Teslim Bekleyen
-          </h3>
-          <p>{pendingOrders}</p>
-        </div>
+        <StatCard
+          icon={<FaShoppingCart />}
+          label="Toplam Sipariş"
+          value={totalOrders}
+        />
+        <StatCard
+          icon={<FaMoneyBillWave />}
+          label="Toplam Gelir"
+          value={`${totalRevenue}₺`}
+        />
+        <StatCard
+          icon={<FaBoxOpen />}
+          label="Aktif Ürün"
+          value={activeProducts}
+        />
+        <StatCard
+          icon={<FaArchive />}
+          label="Arşivli Ürün"
+          value={archivedProducts}
+        />
+        <StatCard
+          icon={<FaCalendarDay />}
+          label="Bugünkü Sipariş"
+          value={todayOrders}
+        />
+        <StatCard
+          icon={<FaCalendarWeek />}
+          label="7 Günde Sipariş"
+          value={weekOrders}
+        />
+        <StatCard
+          icon={<FaHourglassHalf />}
+          label="Teslim Bekleyen"
+          value={pendingOrders}
+        />
 
         <div className={styles.statCard} style={{ flexBasis: "100%" }}>
           <h3>
             <FaFire /> En Çok Satılan Ürünler
           </h3>
           <ul className={styles.miniList}>
-            {topProducts.map((product, index) => (
-              <li key={index}>
-                {product.name} – <strong>{product.count} adet</strong>
-              </li>
-            ))}
+            {topProducts.length > 0 ? (
+              topProducts.map((product, index) => (
+                <li key={index}>
+                  {product.name} – <strong>{product.count} adet</strong>
+                </li>
+              ))
+            ) : (
+              <li>Veri bulunamadı</li>
+            )}
           </ul>
         </div>
 
@@ -168,18 +183,33 @@ export default function AdminDashboard(props) {
             <FaReceipt /> Son 5 Sipariş
           </h3>
           <ul className={styles.miniList}>
-            {recentOrders.map((o) => (
-              <li key={o.id}>
-                <strong>
-                  {o.deliveryInfo.firstName} {o.deliveryInfo.lastName}
-                </strong>{" "}
-                – {new Date(o.createdAt).toLocaleDateString()} –{" "}
-                {o.total.toFixed(2)}₺ – {o.status}
-              </li>
-            ))}
+            {recentOrders.length > 0 ? (
+              recentOrders.map((o) => (
+                <li key={o.id}>
+                  <strong>{o.name}</strong> –{" "}
+                  {new Date(o.date).toLocaleDateString()} –{" "}
+                  {Number(o.total).toFixed(2)}₺ – {o.status}
+                </li>
+              ))
+            ) : (
+              <li>Hiç sipariş bulunamadı</li>
+            )}
           </ul>
         </div>
       </div>
     </div>
   );
 }
+
+function StatCard({ icon, label, value }) {
+  return (
+    <div className={styles.statCard}>
+      <h3>
+        {icon} {label}
+      </h3>
+      <p>{value}</p>
+    </div>
+  );
+}
+
+export default withAuth(AdminDashboard, ["admin"]);

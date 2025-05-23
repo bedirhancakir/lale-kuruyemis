@@ -86,7 +86,7 @@ export default function CartPage() {
                     )}
 
                     <p>
-                      {(item.finalPrice || item.price).toFixed(2)}₺ ×{" "}
+                      {parseFloat(item.finalPrice || item.price).toFixed(2)}₺ ×{" "}
                       {item.quantity}
                     </p>
 

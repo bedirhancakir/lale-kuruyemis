@@ -1,21 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as Yup from "yup";
 import Image from "next/image";
 import styles from "./ProductModal.module.css";
-
-function slugify(text) {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ş/g, "s")
-    .replace(/ç/g, "c")
-    .replace(/ğ/g, "g")
-    .replace(/ü/g, "u")
-    .replace(/ö/g, "o")
-    .replace(/ı/g, "i")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+import slugify from "../../utils/slugify";
 
 export default function ProductModal({
   closeModal,
@@ -23,15 +12,43 @@ export default function ProductModal({
   selectedProduct,
   isEditing,
 }) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [image, setImage] = useState("");
-  const [imageFile, setImageFile] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [categoryId, setCategoryId] = useState("");
-  const [subcategoryId, setSubcategoryId] = useState("");
-  const [unitType, setUnitType] = useState("unit"); // "unit" | "weight"
+  const [imageFile, setImageFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState("");
+
+  const schema = Yup.object({
+    name: Yup.string().required("Ürün adı zorunludur"),
+    description: Yup.string().required("Açıklama zorunludur"),
+    price: Yup.number()
+      .typeError("Fiyat sayısal olmalıdır")
+      .positive()
+      .required("Fiyat zorunludur"),
+    categoryId: Yup.string().required("Kategori seçiniz"),
+    subcategoryId: Yup.string().required("Alt kategori seçiniz"),
+    unitType: Yup.string().oneOf(["unit", "weight"]),
+  });
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      name: "",
+      description: "",
+      price: "",
+      categoryId: "",
+      subcategoryId: "",
+      unitType: "unit",
+    },
+  });
+
+  const categoryId = watch("categoryId");
 
   useEffect(() => {
     fetch("/api/public/categories")
@@ -42,40 +59,38 @@ export default function ProductModal({
 
   useEffect(() => {
     if (isEditing && selectedProduct) {
-      setName(selectedProduct.name || "");
-      setDescription(selectedProduct.description || "");
-      setPrice(selectedProduct.price?.toString() || "");
-      setImage(selectedProduct.image || "");
-      setCategoryId(selectedProduct.category || "");
-      setSubcategoryId(selectedProduct.subcategory || "");
-      setUnitType(selectedProduct.unitType || "unit");
+      reset({
+        name: selectedProduct.name || "",
+        description: selectedProduct.description || "",
+        price: selectedProduct.price || "",
+        categoryId: selectedProduct.category_id || "",
+        subcategoryId: selectedProduct.subcategory_id || "",
+        unitType: selectedProduct.unitType || "unit",
+      });
+      setPreviewImage(selectedProduct.image || "");
       setImageFile(null);
     }
-  }, [isEditing, selectedProduct]);
+  }, [isEditing, selectedProduct, reset]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Sadece görsel dosyaları yükleyebilirsiniz.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Görsel boyutu en fazla 5MB olabilir.");
-      return;
-    }
+    if (!file.type.startsWith("image/"))
+      return alert("Sadece görsel dosyaları yüklenebilir");
+    if (file.size > 5 * 1024 * 1024)
+      return alert("Görsel boyutu en fazla 5MB olabilir");
+
     setImageFile(file);
+    setPreviewImage(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    let finalImage = image;
+  const onSubmit = async (values) => {
+    let finalImage = previewImage;
 
     if (imageFile) {
       const formData = new FormData();
       formData.append("file", imageFile);
-      formData.append("name", name);
+      formData.append("name", values.name);
       formData.append("type", "product-images");
 
       try {
@@ -83,27 +98,32 @@ export default function ProductModal({
           method: "POST",
           body: formData,
         });
-
         const data = await res.json();
         if (!res.ok || !data.url) throw new Error("Görsel yüklenemedi");
         finalImage = data.url;
       } catch (err) {
         console.error("Upload hatası:", err);
-        alert("Görsel yüklenemedi.");
-        return;
+        return alert("Görsel yüklenemedi.");
       }
     }
 
+    const selectedCat = categories.find((c) => c.id === values.categoryId);
+    const selectedSub = selectedCat?.subcategories.find(
+      (s) => s.id === values.subcategoryId
+    );
+
     const productData = {
-      name,
-      slug: slugify(name),
-      description,
-      price: parseFloat(price),
+      name: values.name,
+      slug: slugify(values.name),
+      description: values.description,
+      price: parseFloat(values.price),
       image: finalImage,
-      category: categoryId,
-      subcategory: subcategoryId,
+      category: values.categoryId,
+      subcategory: values.subcategoryId,
+      category_slug: selectedCat?.slug || "",
+      subcategory_slug: selectedSub?.slug || "",
       status: "aktif",
-      unitType,
+      unitType: values.unitType,
     };
 
     try {
@@ -119,12 +139,13 @@ export default function ProductModal({
         body: JSON.stringify(productData),
       });
 
-      if (!res.ok) throw new Error("Ürün kaydedilemedi.");
+      const result = await res.json();
+      if (!res.ok) throw new Error(result?.error || "Ürün kaydedilemedi.");
 
       refreshProducts();
       closeModal();
     } catch (error) {
-      console.error(error);
+      console.error("Ürün kayıt hatası:", error);
       alert("Ürün kaydedilemedi.");
     }
   };
@@ -133,37 +154,39 @@ export default function ProductModal({
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
         <h2>{isEditing ? "Ürünü Düzenle" : "Yeni Ürün Ekle"}</h2>
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
           <input
-            type="text"
             placeholder="Ürün Adı"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
+            {...register("name")}
+            className={errors.name ? styles.errorInput : ""}
           />
+          {errors.name && (
+            <div className={styles.errorText}>{errors.name.message}</div>
+          )}
+
           <textarea
             placeholder="Ürün Açıklaması"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
+            {...register("description")}
+            className={errors.description ? styles.errorInput : ""}
           />
+          {errors.description && (
+            <div className={styles.errorText}>{errors.description.message}</div>
+          )}
+
           <input
             type="number"
             step="0.01"
-            min="0"
             placeholder="Fiyat (₺)"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            required
+            {...register("price")}
+            className={errors.price ? styles.errorInput : ""}
           />
+          {errors.price && (
+            <div className={styles.errorText}>{errors.price.message}</div>
+          )}
 
           <select
-            value={categoryId}
-            onChange={(e) => {
-              setCategoryId(e.target.value);
-              setSubcategoryId("");
-            }}
-            required
+            {...register("categoryId")}
+            className={errors.categoryId ? styles.errorInput : ""}
           >
             <option value="">Kategori Seçin</option>
             {categories.map((cat) => (
@@ -172,12 +195,14 @@ export default function ProductModal({
               </option>
             ))}
           </select>
+          {errors.categoryId && (
+            <div className={styles.errorText}>{errors.categoryId.message}</div>
+          )}
 
           {categoryId && (
             <select
-              value={subcategoryId}
-              onChange={(e) => setSubcategoryId(e.target.value)}
-              required
+              {...register("subcategoryId")}
+              className={errors.subcategoryId ? styles.errorInput : ""}
             >
               <option value="">Alt Kategori Seçin</option>
               {categories
@@ -189,35 +214,24 @@ export default function ProductModal({
                 ))}
             </select>
           )}
+          {errors.subcategoryId && (
+            <div className={styles.errorText}>
+              {errors.subcategoryId.message}
+            </div>
+          )}
 
-          <select
-            value={unitType}
-            onChange={(e) => setUnitType(e.target.value)}
-            required
-          >
+          <select {...register("unitType")}>
             <option value="unit">Adet Bazlı</option>
             <option value="weight">Gramaj Bazlı</option>
           </select>
 
           <input type="file" accept="image/*" onChange={handleFileChange} />
 
-          {imageFile && (
+          {previewImage && (
             <div className={styles.imagePreview}>
               <Image
-                src={URL.createObjectURL(imageFile)}
-                alt="Yeni görsel"
-                width={400}
-                height={200}
-                style={{ objectFit: "contain" }}
-              />
-            </div>
-          )}
-
-          {!imageFile && image && (
-            <div className={styles.imagePreview}>
-              <Image
-                src={image}
-                alt="Mevcut görsel"
+                src={previewImage}
+                alt="Görsel önizleme"
                 width={400}
                 height={200}
                 style={{ objectFit: "contain" }}

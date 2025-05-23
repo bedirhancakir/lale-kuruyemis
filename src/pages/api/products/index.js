@@ -1,21 +1,21 @@
-import fs from "fs";
-import path from "path";
+import { supabase } from "../../../lib/supabaseClient";
 
-const filePath = path.join(process.cwd(), "data", "products.json");
-
-function readProducts() {
-  if (!fs.existsSync(filePath)) return [];
-  const fileData = fs.readFileSync(filePath, "utf-8");
-  return JSON.parse(fileData || "[]");
-}
-
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method === "GET") {
-    const products = readProducts();
-    const activeProducts = products.filter(
-      (product) => product.status === "aktif"
-    ); // SADECE AKTİFLER
-    return res.status(200).json(activeProducts);
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("status", "aktif")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return res.status(200).json(data);
+    } catch (err) {
+      console.error("Ürünler alınamadı:", err.message);
+      return res.status(500).json({ error: "Ürünler yüklenemedi" });
+    }
   }
 
   return res.status(405).json({ error: "Method Not Allowed" });

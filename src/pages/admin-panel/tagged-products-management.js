@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "../../styles/TaggedProducts.module.css";
+import withAuth from "../../components/shared/withAuth";
 import {
   FaFolderOpen,
   FaStar,
@@ -16,23 +17,14 @@ const TAGS = [
   { key: "isDiscounted", label: "İndirimliler", icon: <FaTags /> },
 ];
 
-export default function TaggedProductsManagement() {
+function TaggedProductsManagement() {
   const [products, setProducts] = useState([]);
   const [activeTag, setActiveTag] = useState("isFeatured");
 
   useEffect(() => {
     fetch("/api/admin/admin-products")
       .then((res) => res.json())
-      .then((data) => {
-        const normalized = data.map((p) => ({
-          ...p,
-          isFeatured: !!p.isFeatured,
-          isRecommended: !!p.isRecommended,
-          isBestSeller: !!p.isBestSeller,
-          isDiscounted: !!p.isDiscounted,
-        }));
-        setProducts(normalized);
-      })
+      .then((data) => setProducts(data))
       .catch((err) =>
         console.error("Etiketli ürünler alınamadı:", err.message)
       );
@@ -96,7 +88,7 @@ export default function TaggedProductsManagement() {
                   <td key={tag}>
                     <input
                       type="checkbox"
-                      checked={p[tag] || false}
+                      checked={!!p[tag]}
                       onChange={() => handleTagToggle(p.id, tag, p[tag])}
                     />
                   </td>
@@ -128,3 +120,5 @@ export default function TaggedProductsManagement() {
     </div>
   );
 }
+
+export default withAuth(TaggedProductsManagement, ["admin"]);

@@ -7,14 +7,14 @@ export default function ProductsFilter() {
   const categories = useCategories();
 
   const slug = router.query.slug || [];
-  const category = slug[0] || null;
-  const subcategory = slug[1] || null;
+  const categorySlug = slug[0] || null;
+  const subcategorySlug = slug[1] || null;
 
-  const handleClick = (categoryId, subcategoryId) => {
-    if (!subcategoryId || subcategoryId === "tum") {
-      router.push(`/products/${categoryId}`);
+  const handleClick = (catSlug, subSlug) => {
+    if (!subSlug || subSlug === "tum") {
+      router.push(`/products/${catSlug}`);
     } else {
-      router.push(`/products/${categoryId}/${subcategoryId}`);
+      router.push(`/products/${catSlug}/${subSlug}`);
     }
   };
 
@@ -26,33 +26,27 @@ export default function ProductsFilter() {
         <div key={cat.id} className={styles.block}>
           <h3 className={styles.categoryName}>{cat.name}</h3>
           <ul className={styles.subList}>
-            <li key="tum">
+            <li>
               <button
-                onClick={() => handleClick(cat.id, "tum")}
+                onClick={() => handleClick(cat.slug, "tum")}
                 className={
-                  category === cat.id && !subcategory ? styles.active : ""
-                }
-                aria-current={
-                  category === cat.id && !subcategory ? "true" : "false"
+                  categorySlug === cat.slug &&
+                  (!subcategorySlug || subcategorySlug === "tum")
+                    ? styles.active
+                    : ""
                 }
               >
                 Tümü
               </button>
             </li>
-
             {cat.subcategories.map((sub) => (
               <li key={sub.id}>
                 <button
-                  onClick={() => handleClick(cat.id, sub.id)}
+                  onClick={() => handleClick(cat.slug, sub.slug)}
                   className={
-                    category === cat.id && subcategory === sub.id
+                    categorySlug === cat.slug && subcategorySlug === sub.slug
                       ? styles.active
                       : ""
-                  }
-                  aria-current={
-                    category === cat.id && subcategory === sub.id
-                      ? "true"
-                      : "false"
                   }
                 >
                   {sub.name}

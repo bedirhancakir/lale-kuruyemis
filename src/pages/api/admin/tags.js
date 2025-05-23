@@ -1,7 +1,4 @@
-import fs from "fs/promises";
-import path from "path";
-
-const filePath = path.join(process.cwd(), "data", "products.json");
+import { supabase } from "../../../lib/supabaseClient";
 
 export default async function handler(req, res) {
   if (req.method !== "PUT") {
@@ -12,27 +9,27 @@ export default async function handler(req, res) {
 
   if (
     !productId ||
-    !["isFeatured", "isRecommended", "isBestSeller", "isDiscounted"].includes(tag)
+    !["isFeatured", "isRecommended", "isBestSeller", "isDiscounted"].includes(
+      tag
+    )
   ) {
     return res.status(400).json({ message: "Geçersiz istek" });
   }
 
   try {
-    const fileData = await fs.readFile(filePath, "utf-8");
-    const products = JSON.parse(fileData);
+    const { error } = await supabase
+      .from("products")
+      .update({ [tag]: value })
+      .eq("id", productId);
 
-    const updatedProducts = products.map((product) => {
-      if (product.id === productId) {
-        return { ...product, [tag]: value };
-      }
-      return product;
-    });
+    if (error) {
+      console.error("Supabase güncelleme hatası:", error.message);
+      return res.status(500).json({ message: "Güncelleme başarısız" });
+    }
 
-    await fs.writeFile(filePath, JSON.stringify(updatedProducts, null, 2), "utf-8");
-
-    res.status(200).json({ message: "Etiket güncellendi" });
+    return res.status(200).json({ message: "Etiket güncellendi" });
   } catch (err) {
-    console.error("Tag güncelleme hatası:", err);
-    res.status(500).json({ message: "Sunucu hatası" });
+    console.error("Sunucu hatası:", err);
+    return res.status(500).json({ message: "Sunucu hatası" });
   }
 }

@@ -1,5 +1,4 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { supabase } from "../../lib/supabaseClient";
 import { customAlphabet } from "nanoid";
 
 const nanoid = customAlphabet("1234567890ABCDEFGHJKLMNPQRSTUVWXYZ", 6);
@@ -10,38 +9,66 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { deliveryInfo, cartItems, total, paymentMethod = "Kart" } = req.body;
+    const {
+      full_name,
+      email,
+      phone,
+      address,
+      city,
+      district,
+      note,
+      cartItems,
+      total,
+    } = req.body;
+
+    // ✅ Güvenlik ve boşluk kontrolleri
+    if (
+      !full_name ||
+      !email ||
+      !address ||
+      !city ||
+      !cartItems ||
+      !Array.isArray(cartItems) ||
+      cartItems.length === 0 ||
+      typeof total !== "number"
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Eksik veya geçersiz sipariş verisi" });
+    }
+
     const orderId = `LAL-${new Date()
       .toISOString()
       .slice(0, 10)
       .replace(/-/g, "")}-${nanoid()}`;
 
-    const newOrder = {
-      id: orderId,
-      createdAt: new Date().toISOString(),
-      deliveryInfo,
-      cartItems,
-      total,
-      paymentMethod,
-      status: "Hazırlanıyor",
-    };
+    const { error } = await supabase.from("orders").insert([
+      {
+        id: orderId,
+        created_at: new Date().toISOString(),
+        customer_name: full_name,
+        email,
+        phone: phone || null,
+        address,
+        city,
+        district: district || null,
+        note: note || null,
+        items: cartItems,
+        total_amount: total,
+        status: "Hazırlanıyor",
+      },
+    ]);
 
-    const filePath = path.join(process.cwd(), "data", "orders.json");
-
-    let orders = [];
-    try {
-      const data = await fs.readFile(filePath, "utf-8");
-      orders = JSON.parse(data || "[]");
-    } catch (error) {
-      // Dosya yoksa boş array kullan
+    if (error) {
+      console.error("🔴 Supabase DB hatası:", error.message);
+      return res
+        .status(500)
+        .json({ success: false, error: "Sipariş kaydedilemedi." });
     }
 
-    orders.push(newOrder);
-    await fs.writeFile(filePath, JSON.stringify(orders, null, 2));
-
     return res.status(201).json({ success: true, orderId });
-  } catch (error) {
-    console.error("Order Save Error:", error);
-    return res.status(500).json({ error: "Sunucu Hatası" });
+  } catch (err) {
+    console.error("🔴 API sunucu hatası:", err);
+    return res.status(500).json({ success: false, error: "Sunucu Hatası" });
   }
 }

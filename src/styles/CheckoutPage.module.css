@@ -146,7 +146,21 @@
   align-items: center;
 }
 
-/* ✅ Yeni eklendi: Ürün listesini yazılı göster */
+.addressSummary {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f8f8;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.addressSummary h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* Ürün listesi */
 .itemList {
   margin-top: 1rem;
   margin-bottom: 1rem;
@@ -331,32 +345,6 @@
 .paymentFormRight {
   width: 320px;
   flex-shrink: 0;
-}
-
-.cardPreview {
-  width: 100%;
-  height: 200px;
-  background: linear-gradient(135deg, #28a745, #444);
-  border-radius: 12px;
-  padding: 1.5rem;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  font-family: "Courier New", monospace;
-}
-
-.cardNumber {
-  font-size: 1.4rem;
-  letter-spacing: 2px;
-  margin-bottom: 1rem;
-}
-
-.cardName,
-.cardExpiry {
-  font-size: 0.9rem;
-  color: #ccc;
 }
 
 @media (max-width: 768px) {

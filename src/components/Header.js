@@ -9,11 +9,26 @@ import {
   AiOutlineUser,
   AiFillHeart,
 } from "react-icons/ai";
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import UserMenu from "./header/UserMenu";
 
 export default function Header() {
   const router = useRouter();
   const { cartItems, cartItemCount } = useCart();
   const categories = useCategories();
+  const { user, profile } = useAuth();
+
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const handleUserClick = (e) => {
+    e.preventDefault();
+    if (user) {
+      setShowUserMenu((prev) => !prev);
+    } else {
+      router.push("/login");
+    }
+  };
 
   return (
     <header className={styles.header}>
@@ -29,30 +44,30 @@ export default function Header() {
           />
         </Link>
 
-        <nav className={styles.nav} aria-label="Ana Kategoriler">
+        <nav className={styles.nav}>
           {categories.map((category) => (
             <div key={category.id} className={styles.navItem}>
               <Link
-                href={`/products/${category.id}`}
+                href={`/products/${category.slug}`}
                 className={styles.navLink}
               >
                 {category.name}
               </Link>
 
               {category.subcategories.length > 0 && (
-                <ul className={styles.dropdown} role="menu">
-                  <li key="tumu">
+                <ul className={styles.dropdown}>
+                  <li>
                     <Link
-                      href={`/products/${category.id}`}
+                      href={`/products/${category.slug}`}
                       className={styles.dropdownLink}
                     >
                       Tümü
                     </Link>
                   </li>
                   {category.subcategories.map((sub) => (
-                    <li key={sub.id} role="none">
+                    <li key={sub.id}>
                       <Link
-                        href={`/products/${category.id}/${sub.id}`}
+                        href={`/products/${category.slug}/${sub.slug}`}
                         className={styles.dropdownLink}
                       >
                         {sub.name}
@@ -68,23 +83,34 @@ export default function Header() {
 
       <div className={styles.right}>
         <Link
-          href="/favorites"
+          href={user ? "/favorites" : "/login"}
           className={styles.iconBtn}
-          aria-label="Favoriler"
+          onClick={(e) => {
+            if (!user) {
+              e.preventDefault();
+              router.push("/login");
+            }
+          }}
         >
           <AiFillHeart />
         </Link>
 
-        <Link href="/cart" className={styles.iconBtn} aria-label="Sepet">
+        <Link href="/cart" className={styles.iconBtn}>
           <AiOutlineShoppingCart />
           {cartItems.length > 0 && (
             <span className={styles.cartCount}>{cartItemCount()}</span>
           )}
         </Link>
 
-        <Link href="/" className={styles.iconBtn} aria-label="Hesabım">
+        <Link
+          href={user ? "#" : "/login"}
+          className={styles.iconBtn}
+          onClick={handleUserClick}
+        >
           <AiOutlineUser />
         </Link>
+
+        {showUserMenu && <UserMenu onClose={() => setShowUserMenu(false)} />}
       </div>
     </header>
   );

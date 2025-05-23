@@ -1,140 +1,120 @@
-import fs from "fs/promises";
-import path from "path";
-
-// ✅ Slugify fonksiyonu
-function slugify(text) {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ş/g, "s")
-    .replace(/ç/g, "c")
-    .replace(/ğ/g, "g")
-    .replace(/ü/g, "u")
-    .replace(/ö/g, "o")
-    .replace(/ı/g, "i")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-const filePath = path.join(process.cwd(), "data", "categories.json");
+import { supabase } from "../../../lib/supabaseClient";
+import slugify from "../../../utils/slugify";
 
 export default async function handler(req, res) {
-  const fileData = await fs.readFile(filePath, "utf-8");
-  let categories = JSON.parse(fileData);
+  const { type } = req.body;
 
   if (req.method === "POST") {
     const {
-      type,
       name,
       description = "",
       image = "",
       categoryId,
       forceUpdate,
       oldId,
+      oldImage = "",
     } = req.body;
-    const id = slugify(name);
 
-    if (type === "category") {
-      if (forceUpdate && oldId) {
-        const index = categories.findIndex((cat) => cat.id === oldId);
-        if (index === -1) {
-          return res.status(404).json({ error: "Kategori bulunamadı" });
-        }
+    if (!name)
+      return res.status(400).json({ error: "Kategori adı zorunludur" });
 
-        // Eski görsel varsa ve değişmişse sil
-        const oldImage = categories[index].image;
-        if (oldImage && oldImage !== image) {
-          const oldImagePath = path.join(
-            process.cwd(),
-            "public",
-            oldImage.replace(/^\//, "")
-          );
-          try {
-            await fs.unlink(oldImagePath);
-          } catch (err) {
-            console.warn("Eski kategori görseli silinemedi:", err.message);
+    const slug = slugify(name);
+
+    try {
+      if (type === "category") {
+        if (forceUpdate && oldId) {
+          if (oldImage && oldImage !== image) {
+            const oldPath = oldImage.split("/object/public/lale-assets/")[1];
+            if (oldPath) {
+              await supabase.storage.from("lale-assets").remove([oldPath]);
+            }
           }
+
+          const { error } = await supabase
+            .from("categories")
+            .update({ name, description, image, slug })
+            .eq("id", oldId);
+
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from("categories")
+            .insert([{ name, description, image, slug }]);
+
+          if (error) throw error;
         }
-
-        categories[index] = {
-          ...categories[index],
-          id,
-          name,
-          description,
-          image,
-        };
-      } else {
-        if (categories.find((cat) => cat.id === id)) {
-          return res.status(400).json({ error: "Kategori zaten var" });
-        }
-
-        categories.push({
-          id,
-          name,
-          description,
-          image,
-          subcategories: [],
-        });
       }
+
+      if (type === "subcategory") {
+        if (!categoryId)
+          return res.status(400).json({ error: "Ana kategori ID zorunlu" });
+
+        const subSlug = slugify(name);
+
+        const { error } = await supabase
+          .from("subcategories")
+          .insert([{ name, category_id: categoryId, slug: subSlug }]);
+
+        if (error) throw error;
+      }
+
+      const { data: categoriesWithSubs } = await supabase
+        .from("categories")
+        .select(
+          "id, name, description, image, slug, subcategories(id, name, slug)"
+        );
+
+      return res.status(200).json(categoriesWithSubs);
+    } catch (err) {
+      console.error("Kategori ekleme/güncelleme hatası:", err.message);
+      return res.status(500).json({ error: "Kategori kaydedilemedi" });
     }
-
-    if (type === "subcategory") {
-      const catIndex = categories.findIndex((cat) => cat.id === categoryId);
-      if (catIndex === -1) {
-        return res.status(404).json({ error: "Ana kategori bulunamadı" });
-      }
-
-      const subId = slugify(name);
-      const exists = categories[catIndex].subcategories.find(
-        (sub) => sub.id === subId
-      );
-      if (exists) {
-        return res.status(400).json({ error: "Alt kategori zaten var" });
-      }
-
-      categories[catIndex].subcategories.push({ id: subId, name });
-    }
-
-    await fs.writeFile(filePath, JSON.stringify(categories, null, 2));
-    return res.status(200).json(categories);
   }
 
   if (req.method === "DELETE") {
-    const { type, id, categoryId } = req.body;
+    const { type, id } = req.body;
 
-    if (type === "category") {
-      const deletedCat = categories.find((cat) => cat.id === id);
+    try {
+      if (type === "category") {
+        const { data: category } = await supabase
+          .from("categories")
+          .select("image")
+          .eq("id", id)
+          .single();
 
-      if (deletedCat?.image) {
-        const imagePath = path.join(
-          process.cwd(),
-          "public",
-          deletedCat.image.replace(/^\//, "")
-        );
-        try {
-          await fs.unlink(imagePath);
-        } catch (err) {
-          console.warn("Kategori görseli silinemedi:", err.message);
+        const imagePath = category?.image?.split(
+          "/object/public/lale-assets/"
+        )[1];
+        if (imagePath) {
+          await supabase.storage.from("lale-assets").remove([imagePath]);
         }
+
+        const { error } = await supabase
+          .from("categories")
+          .delete()
+          .eq("id", id);
+        if (error) throw error;
       }
 
-      categories = categories.filter((cat) => cat.id !== id);
-    }
-
-    if (type === "subcategory") {
-      const catIndex = categories.findIndex((cat) => cat.id === categoryId);
-      if (catIndex === -1) {
-        return res.status(404).json({ error: "Ana kategori bulunamadı" });
+      if (type === "subcategory") {
+        const { error } = await supabase
+          .from("subcategories")
+          .delete()
+          .eq("id", id);
+        if (error) throw error;
       }
 
-      categories[catIndex].subcategories = categories[
-        catIndex
-      ].subcategories.filter((sub) => sub.id !== id);
-    }
+      const { data: updated } = await supabase
+        .from("categories")
+        .select(
+          "id, name, description, image, slug, subcategories(id, name, slug)"
+        );
 
-    await fs.writeFile(filePath, JSON.stringify(categories, null, 2));
-    return res.status(200).json(categories);
+      return res.status(200).json(updated);
+    } catch (err) {
+      console.error("Silme hatası:", err.message);
+      return res.status(500).json({ error: "Silme işlemi başarısız" });
+    }
   }
 
   return res.status(405).json({ error: "Yalnızca POST ve DELETE desteklenir" });
